@@ -1,0 +1,1391 @@
+openapi: 3.1.0
+info:
+  title: Real Time Processor API
+  description: |-
+    This API implements a set of public endpoints that allow clients (CRMs)
+    to create, update, and delete publishers ads in real-time.
+    
+    ## Getting started
+    To start using the API, check the following steps:
+    
+    1. **Use token endpoint:** Using your `user` and `password`, request a token using the endpoint  `[POST] /token`. This endpoint returns a Unix timestamp, which represents the **expiration time** of the token. It also returns a token that must be used in every request using the header `Authorization: Bearer $token`.
+    
+    2. **Create a publisher:** Create a new publisher using the endpoint `[POST] /proppit/{country}/publishers`. The publisher has to be approved first by our team before you start creating new ads. We will contact you when the publisher is ready to use. If you want to use an email as your publisher ID, please input the email in lowercase.
+    
+    3. **Create ads:** When our support team approves your publisher, you will be ready to create new ads using endpoint `[POST] /proppit/{country}/ads`.
+    
+    For further details, you can check the full documentation below for each endpoint.
+    
+    ## Errors
+    These are the errors codes more likely to be seen:
+    | **HTTP Status** | **Description** |
+    | :-------------- | :-------------- |
+    | **400 (Bad Request)** | The parameters or the body are invalid, usually because of a failed validation. |
+    | **401 (Unauthorized)** | Missing or invalid `token`. Please, review the Authorization section. |
+    | **404 (Not Found)** | The resource cannot be found. Note that it doesn't necessarily mean it does not exist, but rather that it's not available for the provided credentials. |
+    | **500 (Internal Server Error)** | An unhandled exception occurred. Please, report the issue, including the full response, to the Support Team so we can tackle it. |
+    | **502 (Bad Gateway)** | There was a communication error. Please, try again the operation in a few minutes. |
+    | **503 (Service Unavailable)** | The API is temporarily out of service. Please, try again the operation in a few minutes. |
+    | **504 (Gateway Timeout)** | There was a timeout error. Please, try again the operation in a few minutes. |
+
+    #### Error Response Schema
+    This is the schema of the object you will receive if an error happens. Please, include the error response in
+    your emails when reporting issues.
+
+    | **Field**      | **Type**       | Description |
+    | :------------- | :------------- | :------------- |
+    | **status** | integer | The [HTTP status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status) of the error. |
+    | **requestId** | string | A unique identifier of the request. Please use this identifier when contacting support. |
+    | **error** | string | The reason of the failure. |
+    | **timestamp** | date-time | The UTC time when the error occurred in ISO 8601 format (e.g., 2023-10-01T12:00:00Z). |
+contact:
+  name: Ingester
+  email: ingester@lifullconnect.com
+servers:
+  - url: 'https://real-time.proppit.com/api/v2'
+    description: production
+paths:
+  /token:
+    post:
+      summary: Token
+      operationId: get-token
+      security: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user:
+                  type: string
+                password:
+                  type: string
+              required: [ user, password ]
+            example:
+              user: usernam3
+              password: passw0rd
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  expiration:
+                    type: integer
+              example:
+                token: abcd
+                expiration: 1671620388
+      tags:
+        - Authorization
+
+  '/proppit/{country}/ads':
+    post:
+      summary: Create ad
+      operationId: create-ad
+      description: >-
+        Creates and publishes an ad in Proppit. 
+        
+        The ad could not be published due to your subscription plan.
+        
+        Please check Proppit if you are unable to retrieve the ad after creating it.
+      security:
+        - Authorization: [ ]
+      parameters:
+        - schema:
+            type: string
+          name: country
+          in: path
+          required: true
+          description: The country where the ad is located.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Ad'
+            example:
+              referenceId: AR190
+              publisher:
+                externalId: ag00003
+              contact:
+                name: Test
+                email: user@example.com
+                phone: '+541122451177'
+                whatsapp: '+541122451177'
+              property:
+                type: apartment
+                location:
+                  countryCode: AR
+                  visibility: accurate
+                  geo:
+                    - name: Pine Street 721
+                      level: administrative_area_level_1
+                  coordinates:
+                    lat: -34.6
+                    long: -58.38
+                  address: Pine Street 721
+                  postcode: '1407'
+                  nearbyLocations:
+                    - main street
+                    - park
+                communityFees:
+                  value: 250.2
+                  currency: USD
+                floor: '1'
+                bankProperty: false
+                project:
+                  name: 'Project Name'
+              operations:
+                - type: sell
+                  price:
+                    value: 20000.2
+                    currency: USD
+              title:
+                locale: es-AR
+                text: Title
+              description:
+                locale: es-AR
+                text: Description
+              multimedia:
+                pictures:
+                  - url: >-
+                      https://images.proppit.com/ingester/e0102a70-f69f-3be0-8a70-ec2f7ddf2c1e/807b394007fdd19e8b5cf4f99f73721491343f133047c1da0234298f5c1542e3.jpeg
+              totalArea:
+                value: 200.2
+                unit: sqm
+              floorArea:
+                value: 200.2
+                unit: sqm
+              usableArea:
+                value: 200.2
+                unit: sqm
+              isBoosted: true
+              bedrooms: 4
+              bathrooms: 3
+              halfBathrooms: 1
+              stratum: 2
+              parkingSpaces: 1
+              constructionYear: 2020
+              condition: excellent
+              furnished: fully
+              rules:
+                - pets allowed
+              amenities:
+                - gym
+                - swimming pool
+              paymentMethodsDetails: 'Bank credit and cash allowed for this property'
+              acceptedPaymentMethods:
+                - bank_credit
+                - cash
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ad'
+              example:
+                referenceId: AR190
+                publisher:
+                  externalId: ag060003
+                contact:
+                  name: Test
+                  email: user@example.com
+                  phone: +54 11 2245-1177
+                  whatsapp: '+541122451177'
+                property:
+                  type: apartment
+                  location:
+                    countryCode: AR
+                    visibility: accurate
+                    coordinates:
+                      lat: -34.6
+                      long: -58.38
+                    address: Pine Street 721
+                    postcode: '1407'
+                    nearbyLocations:
+                      - main street
+                      - park
+                  communityFees:
+                    value: 250.2
+                    currency: USD
+                  floor: '1'
+                  bankProperty: false
+                  project:
+                    name: 'Project Name'
+                operations:
+                  - type: sell
+                    price:
+                      value: 20000.2
+                      currency: USD
+                title:
+                  - locale: es-AR
+                    text: Title
+                description:
+                  - locale: es-AR
+                    text: Description
+                multimedia:
+                  pictures:
+                    - url: >-
+                        https://sbx-lifullconnect-backend-b2b-images.s3.amazonaws.com/ingester/7ff0e6f9-1e52-4a69-b07b-45882e21b1bc/10470bca78c5b6ba93990eff51c053b6c9f9120129f777492e65506890e0f7e8.jpeg
+                totalArea:
+                  value: 200.2
+                  unit: sqm
+                floorArea:
+                  value: 200.2
+                  unit: sqm
+                usableArea:
+                  value: 200.2
+                  unit: sqm
+                isBoosted: true
+                bedrooms: 4
+                bathrooms: 3
+                halfBathrooms: 1
+                stratum: 2
+                parkingSpaces: 1
+                constructionYear: 1500
+                condition: excellent
+                furnished: fully
+                rules:
+                  - pets allowed
+                amenities:
+                  - gym
+                  - swimming pool
+                paymentMethodsDetails: 'Bank credit and cash allowed for this property'
+                acceptedPaymentMethods:
+                  - bank_credit
+                  - cash
+      tags:
+        - Ad
+
+  '/proppit/{country}/ads/{referenceId}':
+    put:
+      summary: Update ad
+      operationId: update-ad
+      description: >-
+        Updates an ad in Proppit. 
+        
+        **NOTE:** The ad must first be created using the `[POST] /proppit/{country}/ads` endpoint.
+      security:
+        - Authorization: [ ]
+      parameters:
+        - schema:
+            type: string
+          name: referenceId
+          in: path
+          required: true
+          description: The reference of the ad.
+        - schema:
+            type: string
+          name: country
+          in: path
+          required: true
+          description: The country where the ad is located.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Ad'
+            example:
+              referenceId: AR190
+              publisher:
+                externalId: ag00003
+              contact:
+                name: Test
+                email: user@example.com
+                phone: '+541122451177'
+                whatsapp: '+541122451177'
+              property:
+                type: apartment
+                location:
+                  countryCode: AR
+                  visibility: accurate
+                  geo:
+                    - name: Pine Street 721
+                      level: administrative_area_level_1
+                  coordinates:
+                    lat: -34.6
+                    long: -58.38
+                  address: Pine Street 721
+                  postcode: '1407'
+                  nearbyLocations:
+                    - main street
+                    - park
+                communityFees:
+                  value: 250.2
+                  currency: USD
+                floor: '1'
+                bankProperty: false
+                project:
+                  name: 'Project Name'
+              operations:
+                - type: sell
+                  price:
+                    value: 20000.2
+                    currency: USD
+              title:
+                locale: es-AR
+                text: Title
+              description:
+                locale: es-AR
+                text: Description
+              multimedia:
+                pictures:
+                  - url: >-
+                      https://images.proppit.com/ingester/e0102a70-f69f-3be0-8a70-ec2f7ddf2c1e/807b394007fdd19e8b5cf4f99f73721491343f133047c1da0234298f5c1542e3.jpeg
+              totalArea:
+                value: 200.2
+                unit: sqm
+              floorArea:
+                value: 200.2
+                unit: sqm
+              usableArea:
+                value: 200.2
+                unit: sqm
+              isBoosted: true
+              bedrooms: 4
+              bathrooms: 3
+              halfBathrooms: 1
+              stratum: 2
+              parkingSpaces: 1
+              constructionYear: 2020
+              condition: excellent
+              furnished: fully
+              rules:
+                - pets allowed
+              amenities:
+                - gym
+                - swimming pool
+              paymentMethodsDetails: 'Bank credit and cash allowed for this property'
+              acceptedPaymentMethods:
+                - bank_credit
+                - cash
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ad'
+              example:
+                referenceId: AR190
+                publisher:
+                  externalId: ag060003
+                contact:
+                  name: Test
+                  email: user@example.com
+                  phone: +54 11 2245-1177
+                  whatsapp: '+541122451177'
+                property:
+                  type: apartment
+                  location:
+                    countryCode: AR
+                    visibility: accurate
+                    coordinates:
+                      lat: -34.6
+                      long: -58.38
+                    address: Pine Street 721
+                    postcode: '1407'
+                    nearbyLocations:
+                      - main street
+                      - park
+                  communityFees:
+                    value: 250.2
+                    currency: USD
+                  floor: '1'
+                  bankProperty: false
+                  project:
+                    name: 'Project Name'
+                operations:
+                  - type: sell
+                    price:
+                      value: 20000.2
+                      currency: USD
+                title:
+                  - locale: es-AR
+                    text: Title
+                description:
+                  - locale: es-AR
+                    text: Description
+                multimedia:
+                  pictures:
+                    - url: >-
+                        https://sbx-lifullconnect-backend-b2b-images.s3.amazonaws.com/ingester/7ff0e6f9-1e52-4a69-b07b-45882e21b1bc/10470bca78c5b6ba93990eff51c053b6c9f9120129f777492e65506890e0f7e8.jpeg
+                totalArea:
+                  value: 200.2
+                  unit: sqm
+                floorArea:
+                  value: 200.2
+                  unit: sqm
+                usableArea:
+                  value: 200.2
+                  unit: sqm
+                isBoosted: true
+                bedrooms: 4
+                bathrooms: 3
+                halfBathrooms: 1
+                stratum: 2
+                parkingSpaces: 1
+                constructionYear: 1500
+                condition: excellent
+                furnished: fully
+                rules:
+                  - pets allowed
+                amenities:
+                  - gym
+                  - swimming pool
+                paymentMethodsDetails: 'Bank credit and cash allowed for this property'
+                acceptedPaymentMethods:
+                  - bank_credit
+                  - cash
+      tags:
+        - Ad
+
+  '/proppit/{country}/ads/{referenceId}?externalId={external-id-publisher}':
+    get:
+      summary: Get ad
+      operationId: get-ad
+      description: >-
+        Retrieves a `published` ad from Proppit. 
+        
+        **NOTE:** The ad must first be created using the `[POST] /proppit/{country}/ads` endpoint and published on at least one site.
+      security:
+        - Authorization: [ ]
+      parameters:
+        - schema:
+            type: string
+          name: referenceId
+          in: path
+          required: true
+          description: The reference of the ad.
+        - schema:
+            type: string
+          name: country
+          in: path
+          required: true
+          description: The country where the ad is located.
+        - schema:
+            type: string
+          in: query
+          name: externalId
+          description: The publisher identification.
+          required: true
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Ad'
+              example:
+                referenceId: AR190
+                publisher:
+                  name: Agency test
+                  externalId: ag00003
+                contact:
+                  name: Test
+                  email: user@example.com
+                  phone: '+541122451177'
+                  whatsapp: '+541122451177'
+                property:
+                  type: apartment
+                  location:
+                    countryCode: AR
+                    visibility: accurate
+                    geo:
+                      - name: Pine Street 721
+                        level: administrative_area_level_1
+                    coordinates:
+                      lat: -34.6
+                      long: -58.38
+                    address: Pine Street 721
+                    postcode: '1407'
+                    nearbyLocations:
+                      - main street
+                      - park
+                  communityFees:
+                    value: 250.2
+                    currency: USD
+                  floor: '1'
+                  bankProperty: false
+                  project:
+                    name: 'Project Name'
+                status: published
+                operations:
+                  - type: sale
+                    price:
+                      value: 20000.2
+                      currency: USD
+                titleMultiLanguage:
+                  - locale: es-AR
+                    text: Title
+                descriptionMultiLanguage:
+                  - locale: es-AR
+                    text: Description
+                multimedia:
+                  pictures:
+                    - url: >-
+                        https://images.proppit.com/ingester/e0102a70-f69f-3be0-8a70-ec2f7ddf2c1e/807b394007fdd19e8b5cf4f99f73721491343f133047c1da0234298f5c1542e3.jpeg
+                totalArea:
+                  value: 200.2
+                  unit: sqm
+                floorArea:
+                  value: 200.2
+                  unit: sqm
+                usableArea:
+                  value: 200.2
+                  unit: sqm
+                isBoosted: true
+                bedrooms: 4
+                bathrooms: 3
+                halfBathrooms: 1
+                stratum: 2
+                parkingSpaces: 1
+                constructionYear: 2020
+                condition: excellent
+                furnished: fully
+                rules:
+                  - pets allowed
+                amenities:
+                  - gym
+                  - swimming pool
+                paymentMethodsDetails: 'Bank credit and cash allowed for this property'
+                acceptedPaymentMethods:
+                  - bank_credit
+                  - cash
+      tags:
+        - Ad
+
+    delete:
+      summary: Delete ad
+      operationId: delete-ad
+      description: >-
+        Deletes an ad from Proppit and unpublishes it.
+        
+        **NOTE:** The ad must first be created using the `[POST] /proppit/{country}/ads` endpoint.
+      security:
+        - Authorization: [ ]
+      parameters:
+        - schema:
+            type: string
+          name: referenceId
+          in: path
+          required: true
+          description: The reference of the ad.
+        - schema:
+            type: string
+          name: country
+          in: path
+          required: true
+          description: The country where the ad is located.
+        - schema:
+            type: string
+          in: query
+          name: externalId
+          description: The publisher identification.
+          required: true
+      responses:
+        '200':
+          description: OK
+      tags:
+        - Ad
+
+  '/proppit/{country}/publishers':
+    post:
+      summary: Create publisher
+      operationId: create-publisher
+      description: Creates a new publisher.
+      security:
+        - Authorization: [ ]
+      parameters:
+        - schema:
+            type: string
+          name: country
+          in: path
+          required: true
+          description: The country where the publisher is located.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Publisher'
+            example:
+              id: example-agency-id
+              name: Example Agency
+              email: agency@example.com
+              phone: 123-456-7890
+        description: ''
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Publisher'
+              example:
+                id: example-agency-id
+                name: Example Agency
+                email: agency@example.com
+                phone: 123-456-7890
+      tags:
+        - Publisher
+
+  '/proppit/{country}/publishers/{id}':
+    put:
+      summary: Update publisher
+      operationId: update-publisher
+      description: >-
+        Updates a publisher. 
+        
+        **NOTE:** The publisher must first be created using the `[POST] /proppit/{country}/publishers` endpoint.
+      security:
+        - Authorization: [ ]
+      parameters:
+        - schema:
+            type: string
+          name: country
+          in: path
+          required: true
+          description: The country where the publisher is located.
+        - schema:
+            type: string
+          name: id
+          in: path
+          required: true
+          description: The publisher identification.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Publisher'
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Publisher'
+              example:
+                id: example-agency-id
+                name: Example Agency Name Updated
+                email: agency@example.com
+                phone: 123-456-7890
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Publisher'
+              example:
+                id: example-agency-id
+                name: Example Agency Name Updated
+                email: agency@example.com
+                phone: 123-456-7890
+      tags:
+        - Publisher
+
+    get:
+      summary: Get publisher
+      operationId: get-publisher
+      description: >-
+        Retrieves a publisher.
+        
+        **NOTE:** The publisher must first be created using the `[POST] /proppit/{country}/publishers` endpoint.
+      security:
+        - Authorization: [ ]
+      parameters:
+        - schema:
+            type: string
+          name: country
+          in: path
+          required: true
+          description: The country where the publisher is located.
+        - schema:
+            type: string
+          name: id
+          in: path
+          required: true
+          description: The publisher identification.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Publisher'
+              example:
+                id: example-agency-id
+                name: Example Agency
+                email: agency@example.com
+                phone: 123-456-7890
+      tags:
+        - Publisher
+
+  '/proppit/{country}/property-types':
+    get:
+      summary: Get property types
+      operationId: get-property-types
+      description: >-
+        Based on the selected country, this endpoint returns the eligible property types and their respective allowed values for: nearbyLocations, amenities and rules.
+      security:
+        - Authorization: [ ]
+      parameters:
+        - name: country
+          in: path
+          required: true
+          schema:
+            type: string
+          description: The country for which property types should be retrieved.
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PropertyTypesArray'
+      tags:
+        - Property Types
+
+components:
+  schemas:
+    Ad:
+      type: object
+      examples:
+        - referenceId: ABC190
+          publisher:
+            externalId: ag060003
+          contact:
+            name: Admin Admin
+            email: test.publisher@test.com
+            phone: +52 55 6042 8388
+          property:
+            type: house
+            location:
+              countryCode: MX
+              visibility: accurate
+              geo:
+                - name: >-
+                    Moneda 76 bis Col. Tlalpan Del. Tlalpan,  06060,  Ciudad de
+                    México, CDMX México
+                  level: administrative_area_level_2
+                - name: >-
+                    Moneda 76 bis Col. Tlalpan Del. Tlalpan,  06060,  Ciudad de
+                    México, CDMX México
+                  level: locality
+              coordinates:
+                lat: 19.289713513141653
+                long: -99.16954322040405
+              address: Moneda
+              postcode: '06060'
+              nearbyLocations:
+                - train station
+            project:
+              name: "Project Name"
+          floorArea:
+            value: 0
+            unit: sqm
+          usableArea:
+            value: 1113
+            unit: sqm
+          isBoosted: true
+          bedrooms: 3
+          bathrooms: 4
+          halfBathrooms: 4
+          parkingSpaces: 3
+          status: published
+          operations:
+            - type: sell
+              price:
+                value: 29000000
+                currency: MXN
+          title:
+            locale: es-MX
+            text: Casa - Tlalpan - no comprar prueba
+          description:
+            locale: es-MX
+            text: >-
+              Casa desplantada en 4 niveles sobre un amplio terreno, jardín
+              frontal, estacionamiento cubierto para 3 autos y bodega, patio con
+              árboles y amplia terraza cubierta de cristal. Planta Baja: sala,
+              comedor, escalera, 1/2 baño, cocina con despensa,
+              lavandería,&nbsp; patio y jardín posterior, área de baños, cuarto
+              de maquinas y cuarto de servicio con baño. Planta alta: estancia
+              con closet, cuarto de televisión, recamara 1 con closet y
+              baño,&nbsp; recamara 2 con closet y baño, recamara 3 principal con
+              vestidor y baño.
+          amenities:
+            - air conditioning
+          paymentMethodsDetails: 'Bank credit and cash allowed for this property'
+          acceptedPaymentMethods:
+            - bank_credit
+            - cash
+          rules:
+            - pets allowed
+          multimedia:
+            pictures:
+              - url: 'https://i.ibb.co/8zgTtSh/a.jpg'
+            floorPlans:
+              - url: 'https://i.ibb.co/8zgTtSh/a.jpg'
+            videos:
+              - url: 'https://i.ibb.co/8zgTtSh/a.jpg'
+            virtualTours:
+              - url: 'https://i.ibb.co/8zgTtSh/a.jpg'
+      properties:
+        referenceId:
+          type: string
+        publisher:
+          $ref: '#/components/schemas/AdPublisher'
+        contact:
+          $ref: '#/components/schemas/Contact'
+        property:
+          $ref: '#/components/schemas/Property'
+        status:
+          type: string
+          enum:
+            - published
+          example: published
+          readOnly: true
+        operations:
+          type: array
+          items:
+            $ref: '#/components/schemas/Operation'
+        title:
+          $ref: '#/components/schemas/LocalisedText'
+        description:
+          $ref: '#/components/schemas/LocalisedText'
+        multimedia:
+          $ref: '#/components/schemas/Multimedia'
+        totalArea:
+          $ref: '#/components/schemas/Area'
+          description: |-
+            **MANDATORY** for the property type "land".
+            **OPTIONAL** for the following property types:
+            - house
+            - villa
+            - commercial
+            - industrial unit
+            - apartment
+            - office
+        floorArea:
+          $ref: '#/components/schemas/Area'
+          description: |-
+            Do not include this tag for the property type "land".
+            **MANDATORY** for all other property types.
+        usableArea:
+          $ref: '#/components/schemas/Area'
+        isBoosted:
+          type: boolean
+          description: |-
+            **OPTIONAL** Use this field to increase ads visibility (up to your current plan's maximum amount of ads).
+            true/false values are accepted.
+            If the tag isn't included, it'll default to false, and the most recent properties will have a higher visibility instead.
+        bedrooms:
+          type: number
+          minimum: 0
+        bathrooms:
+          type: number
+          minimum: 0
+        halfBathrooms:
+          type: number
+          minimum: 0
+          description: |-
+            This field is **only allowed** in the following property types for each country:
+              * MX: house, apartment, house in gated community, condo, commercial, commercial land, horizontal condo, ranch, penthouse, commercial in mall, quinta, villa, loft, studio, duplex, octor office, hotel.
+              * PA: house, commercial, office.
+              * CL: apartment, house, commercial, office.
+              * PE: condo, car park, beach house, room.
+              * CO: commercial, apartment, house, villa, office.
+        stratum:
+          type: number
+          minimum: 1
+          maximum: 7
+          description: |-
+            This field is allowed for all property types, but **only in CO**.
+        parkingSpaces:
+          type: number
+          minimum: 0
+        constructionYear:
+          type: number
+          example: 2020
+          minimum: 1500
+          maximum: 2100
+        condition:
+          $ref: '#/components/schemas/Condition'
+        furnished:
+          $ref: '#/components/schemas/Furnished'
+        rules:
+          type: array
+          items:
+            $ref: '#/components/schemas/Rules'
+        amenities:
+          type: array
+          items:
+            $ref: '#/components/schemas/Amenity'
+        paymentMethodsDetails:
+          type: string
+        acceptedPaymentMethods:
+          type: string
+          enum:
+            - forbidden_bank_credit
+            - bank_credit
+            - cash
+            - infonavit
+            - fovissste
+          description: |-
+            This field should only be sent for **MX**, it won't work on any other countries.
+      required:
+        - referenceId
+        - publisher
+        - property
+        - operations
+        - title
+        - description
+    Amenity:
+      type: string
+      description: >-
+        To check the allowed values for amenities, refer to the "Get Property Types" endpoint at `/proppit/{country}/property-types`.
+    Area:
+      type: object
+      examples:
+        - value: 200.2
+          unit: sqm
+      properties:
+        value:
+          type: number
+          example: 200.2
+        unit:
+          type: string
+          example: sqm
+      required:
+        - value
+        - unit
+      description: >-
+        All areas must be provided in square meters (sqm).
+
+        We indicate below the types of areas that must be reported for each
+        property type:
+
+        - Apartment / Office: 
+          - Total area in **floorArea**
+        - House / villa / commercial / industrial unit: 
+          - Total area in **floorArea**
+          - Land area in **totalArea**
+        - Land:
+          - Land area in **totalArea**
+    Condition:
+      type: string
+      enum:
+        - excellent
+        - good
+        - normal
+        - to renew
+        - second hand
+        - ruin
+        - semi-renovated
+        - semi-new
+        - in construction
+        - new
+        - renovated
+    Contact:
+      type: object
+      examples:
+        - name: Test
+          email: user@example.com
+          phone: '+541122451177'
+          whatsapp: '+541122451177'
+      description: Used for the contact details of each listing.
+      properties:
+        name:
+          type: string
+        email:
+          type: string
+          format: email
+        phone:
+          type: string
+        whatsapp:
+          type: string
+      required:
+        - name
+        - email
+    Coordinates:
+      type: object
+      description: Locates the listings and make them visible in website searches.
+      properties:
+        lat:
+          type: number
+        long:
+          type: number
+      required:
+        - lat
+        - long
+    Country:
+      type: string
+      enum:
+        - AE
+        - AR
+        - CL
+        - CO
+        - EC
+        - ES
+        - ID
+        - MX
+        - PA
+        - PE
+        - PH
+        - TH
+        - VN
+    Furnished:
+      type: string
+      enum:
+        - fully
+        - partly
+        - unfurnished
+      description: >-
+        Used to indicate whether the property is fully furnished, partially furnished, or unfurnished.
+    Geo:
+      type: object
+      properties:
+        name:
+          type: string
+        level:
+          $ref: '#/components/schemas/LocationLevel'
+      required:
+        - name
+        - level
+    Locale:
+      type: string
+      enum:
+        - es-AR
+        - es-CL
+        - es-CO
+        - es-MX
+        - es-PE
+        - en-PH
+        - id-ID
+        - th-TH
+        - vi-VN
+        - es-ES
+        - es-PA
+        - es-EC
+      description: >-
+        Used to indicate the language of the text.
+    Location:
+      type: object
+      examples:
+        - countryCode: AE
+          visibility: accurate
+          geo:
+            - name: string
+              level: administrative_area_level_1
+          coordinates:
+            lat: 90.1
+            long: -90.2
+          address: string
+          postcode: string
+      properties:
+        countryCode:
+          $ref: '#/components/schemas/Country'
+        visibility:
+          $ref: '#/components/schemas/Visibility'
+        geo:
+          type: array
+          items:
+            $ref: '#/components/schemas/Geo'
+        coordinates:
+          $ref: '#/components/schemas/Coordinates'
+        address:
+          type: string
+        postcode:
+          type: string
+        nearbyLocations:
+          type: array
+          items:
+            $ref: '#/components/schemas/NearByLocation'
+      required:
+        - coordinates
+    LocationLevel:
+      type: string
+      enum:
+        - administrative_area_level_1
+        - administrative_area_level_2
+        - administrative_area_level_5
+        - neighborhood
+        - sublocality_level_1
+        - sublocality_level_2
+        - locality
+        - aws_region
+        - aws_sub_region
+        - aws_minucipality
+        - aws_neighborhood
+    LocalisedText:
+      type: object
+      properties:
+        locale:
+          $ref: '#/components/schemas/Locale'
+        text:
+          type: string
+      required:
+        - locale
+        - text
+    Multimedia:
+      type: object
+      examples:
+        - pictures:
+            url: string
+          floorPlans:
+            - string
+          videos:
+            - string
+          virtualTours:
+            - string
+      properties:
+        pictures:
+          type: array
+          items:
+            $ref: '#/components/schemas/Picture'
+        floorPlans:
+          type: array
+          items:
+            $ref: '#/components/schemas/OtherMultimedia'
+        videos:
+          type: array
+          items:
+            $ref: '#/components/schemas/OtherMultimedia'
+        virtualTours:
+          type: array
+          items:
+            $ref: '#/components/schemas/OtherMultimedia'
+    Operation:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - rent
+            - sell
+          example: sell
+        price:
+          $ref: '#/components/schemas/OperationPrice'
+      required:
+        - type
+        - price
+    OperationPrice:
+      type: object
+      properties:
+        value:
+          type: number
+        currency:
+          $ref: '#/components/schemas/Currency'
+        periodicity:
+          $ref: '#/components/schemas/PricePeriodicity'
+      required:
+        - value
+        - currency
+    PricePeriodicity:
+      type: string
+      enum:
+        - yearly
+        - monthly
+        - daily
+      example: monthly
+      description: >-
+        Used to indicate the periodicity of the rental price. 
+        **NOTE:** This field is only allowed in ID when the operation type is "rent".
+    CommunityFeesPrice:
+      type: object
+      examples:
+        - value: 1000.2
+          currency: USD
+      properties:
+        value:
+          type: number
+        currency:
+          $ref: '#/components/schemas/Currency'
+      required:
+        - value
+        - currency
+    Project:
+      type: object
+      examples:
+        - name: 'My Project Name'
+      properties:
+        name:
+          type: string
+    Currency:
+      type: string
+      enum:
+        - AED
+        - ARS
+        - CLF
+        - CLP
+        - COP
+        - EUR
+        - MXN
+        - PAB
+        - PEN
+        - PHP
+        - THB
+        - USD
+        - VND
+        - IDR
+    Picture:
+      type: object
+      examples:
+        - url: string
+      properties:
+        url:
+          type: string
+          description: >-
+            The URL of the image. The content type **MUST** be **image/*** or **application/octet-stream**.
+      required:
+        - url
+    OtherMultimedia:
+      type: object
+      examples:
+        - url: string
+      properties:
+        url:
+          type: string
+      required:
+        - url
+    Property:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/PropertyType'
+        location:
+          $ref: '#/components/schemas/Location'
+        communityFees:
+          $ref: '#/components/schemas/CommunityFeesPrice'
+          description: Used to indicate the amount of property maintenance fees
+        floor:
+          type: string
+        bankProperty:
+          type: boolean
+          description: Available only for MX "Propiedad en Remate".
+        project:
+          $ref: '#/components/schemas/Project'
+          description: The project name **MUST** match exactly the desired project's. Failure to do so won't throw an error, but won't assign a project to your property.
+      required:
+        - type
+        - location
+    PropertyType:
+      type: string
+      description: >-
+        To check the allowed values for property types, refer to the "Get Property Types" endpoint at `/proppit/{country}/property-types`.
+    AdPublisher:
+      type: object
+      examples:
+        externalId: ag00003
+      properties:
+        externalId:
+          type: string
+      required:
+        - externalId
+    NearByLocation:
+      type: string
+      description: >-
+        To check the allowed values for nearbyLocations, refer to the "Get Property Types" endpoint at `/proppit/{country}/property-types`.
+    Rules:
+      type: string
+      description: |-
+        Includes whether the rental property only accepts families, or if it
+        accepts animals and/or children.
+
+        To check the allowed values for rules, refer to the "Get Property Types" endpoint at `/proppit/{country}/property-types`.
+    Visibility:
+      type: string
+      enum:
+        - accurate
+        - approximate
+      example: accurate
+      description: >-
+        Used to display the exact or approximate location of the properties on the websites.
+
+        If the tag is sent empty or not included, we will mark the listings as
+        'Approximate'
+    Publisher:
+      type: object
+      examples:
+        - id: example-agency-id
+          name: Example Agency
+          email: agency@example.com
+          phone: 123-456-7890
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        email:
+          type: string
+        phone:
+          type: string
+      required:
+        - id
+    PropertyTypesArray:
+      type: array
+      items:
+        type: object
+        properties:
+          id:
+            type: string
+          nearbyLocations:
+            type: array
+            items:
+              type: string
+          amenities:
+            type: array
+            items:
+              type: string
+          rules:
+            type: array
+            items:
+              type: string
+      example:
+        - id: "apartment"
+          nearbyLocations:
+            - "main street"
+            - "sea"
+            - "shopping mall"
+          amenities:
+            - "air conditioning"
+            - "fireplace"
+            - "garden"
+            - "sauna"
+          rules:
+            - "pets allowed"
+            - "children allowed"
+        - id: "house"
+          nearbyLocations:
+            - "main street"
+            - "train station"
+            - "sauna"
+          amenities:
+            - "balcony"
+            - "electricity"
+          rules:
+            - "pets allowed"
+            - "children allowed"
+            - "only families"
+    Error:
+      type: object
+      properties:
+        status:
+          type: integer
+          description: The [HTTP status code](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status) of the error.
+        requestId:
+          type: string
+          description: A unique identifier of the request. Please use this identifier when contacting support.
+        error:
+          type: string
+          description: The reason of the failure.
+        timestamp:
+          type: string
+          format: date-time
+          description: The UTC time when the error occurred in ISO 8601 format (e.g., 2023-10-01T12:00:00Z).
+  securitySchemes:
+    Authorization:
+      type: http
+      scheme: bearer
+      description: ''
