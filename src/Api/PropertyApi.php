@@ -10,6 +10,7 @@ use Propit\Contracts\PropertyPayloadMapperInterface;
 use Propit\Contracts\PropitHttpClientInterface;
 use Propit\DTO\PropertyPayload;
 use Propit\DTO\PropertyResponse;
+use Propit\Exceptions\PublisherNotReadyException;
 use Propit\Exceptions\ValidationException;
 
 final class PropertyApi implements PropertyApiInterface
@@ -24,7 +25,16 @@ final class PropertyApi implements PropertyApiInterface
     public function publish(PropertyPayload|array $payload): PropertyResponse
     {
         $body = $this->mapper->normalize($payload);
-        $response = $this->http->request('POST', $this->adsPath(), json: $body);
+
+        try {
+            $response = $this->http->request('POST', $this->adsPath(), json: $body);
+        } catch (PublisherNotReadyException $e) {
+            throw new PublisherNotReadyException(
+                (string) ($body['publisher']['externalId'] ?? $e->publisherExternalId),
+                $e->proppitRequestId,
+                $e->context(),
+            );
+        }
 
         return PropertyResponse::fromArray($response->json);
     }
@@ -32,7 +42,16 @@ final class PropertyApi implements PropertyApiInterface
     public function update(string $referenceId, PropertyPayload|array $payload): PropertyResponse
     {
         $body = $this->mapper->normalize($payload);
-        $response = $this->http->request('PUT', $this->adPath($referenceId), json: $body);
+
+        try {
+            $response = $this->http->request('PUT', $this->adPath($referenceId), json: $body);
+        } catch (PublisherNotReadyException $e) {
+            throw new PublisherNotReadyException(
+                (string) ($body['publisher']['externalId'] ?? $e->publisherExternalId),
+                $e->proppitRequestId,
+                $e->context(),
+            );
+        }
 
         return PropertyResponse::fromArray($response->json);
     }

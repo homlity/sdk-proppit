@@ -13,6 +13,7 @@ use Propit\Contracts\PropitHttpClientInterface;
 use Propit\DTO\HttpResponse;
 use Propit\Exceptions\ApiException;
 use Propit\Exceptions\AuthException;
+use Propit\Exceptions\PublisherNotReadyException;
 use Propit\Exceptions\RateLimitException;
 use Propit\Support\StructuredLogger;
 
@@ -41,8 +42,8 @@ final class GuzzlePropitHttpClient implements PropitHttpClientInterface
             ], $this->config->customHeaders(), $headers));
 
             try {
-                $resp = $this->client->request($method, $uri, [
-                    'base_uri' => $this->config->baseUrl(),
+                $fullUri = rtrim($this->config->baseUrl(), '/') . '/' . ltrim($uri, '/');
+                $resp = $this->client->request($method, $fullUri, [
                     'headers' => $finalHeaders,
                     'query' => $query,
                     'json' => $json,
@@ -115,8 +116,22 @@ final class GuzzlePropitHttpClient implements PropitHttpClientInterface
             'headers' => StructuredLogger::sanitize($response->headers),
         ];
 
-        if ($response->statusCode === 401 || $response->statusCode === 403) {
-            return new AuthException('Unauthorized response from Proppit.', $ctx, $response->statusCode);
+        if ($response->statusCode === 403) {
+            $apiError  = $response->json['error'] ?? $response->json['message'] ?? '';
+            $requestId = isset($response->json['requestId']) ? (string) $response->json['requestId'] : null;
+
+            if (is_string($apiError) && stripos($apiError, 'publisher could not publish') !== false) {
+                return new PublisherNotReadyException('', $requestId, $ctx);
+            }
+
+            $detail = is_string($apiError) && $apiError !== '' ? ": {$apiError}" : '';
+            return new AuthException('Unauthorized response from Proppit' . $detail . '.', $ctx, 403);
+        }
+
+        if ($response->statusCode === 401) {
+            $apiError = $response->json['error'] ?? $response->json['message'] ?? $response->rawBody;
+            $detail   = is_string($apiError) && $apiError !== '' ? ": {$apiError}" : '';
+            return new AuthException('Unauthorized response from Proppit' . $detail . '.', $ctx, 401);
         }
 
         if ($response->statusCode === 429) {
