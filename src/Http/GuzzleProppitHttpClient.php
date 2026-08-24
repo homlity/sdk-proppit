@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-namespace Propit\Http;
+namespace Proppit\Http;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
 use Psr\Http\Message\ResponseInterface;
-use Propit\Config\PropitConfig;
-use Propit\Contracts\PropitAuthenticatorInterface;
-use Propit\Contracts\PropitHttpClientInterface;
-use Propit\DTO\HttpResponse;
-use Propit\Exceptions\ApiException;
-use Propit\Exceptions\AuthException;
-use Propit\Exceptions\ForbiddenException;
-use Propit\Exceptions\PublisherNotReadyException;
-use Propit\Exceptions\RateLimitException;
-use Propit\Support\StructuredLogger;
+use Proppit\Config\ProppitConfig;
+use Proppit\Contracts\ProppitAuthenticatorInterface;
+use Proppit\Contracts\ProppitHttpClientInterface;
+use Proppit\DTO\HttpResponse;
+use Proppit\Exceptions\ApiException;
+use Proppit\Exceptions\AuthException;
+use Proppit\Exceptions\ForbiddenException;
+use Proppit\Exceptions\PublisherNotReadyException;
+use Proppit\Exceptions\RateLimitException;
+use Proppit\Support\StructuredLogger;
 
-final class GuzzlePropitHttpClient implements PropitHttpClientInterface
+final class GuzzleProppitHttpClient implements ProppitHttpClientInterface
 {
     public function __construct(
         private readonly ClientInterface $client,
-        private readonly PropitConfig $config,
-        private readonly PropitAuthenticatorInterface $authenticator,
+        private readonly ProppitConfig $config,
+        private readonly ProppitAuthenticatorInterface $authenticator,
         private readonly StructuredLogger $logger,
     ) {
     }
@@ -59,7 +59,7 @@ final class GuzzlePropitHttpClient implements PropitHttpClientInterface
             $durationMs = (int) round((microtime(true) - $start) * 1000);
             $requestId = $response->headers['x-request-id'][0] ?? $response->json['requestId'] ?? null;
 
-            $this->logger->info('propit_http', [
+            $this->logger->info('proppit_http', [
                 'method' => $method,
                 'uri' => $uri,
                 'status_code' => $response->statusCode,

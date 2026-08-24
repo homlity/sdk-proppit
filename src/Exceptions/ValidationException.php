@@ -2,8 +2,8 @@
 
 declare(strict_types=1);
 
-namespace Propit\Exceptions;
+namespace Proppit\Exceptions;
 
-final class ValidationException extends PropitException
+final class ValidationException extends ProppitException
 {
 }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Propit\Exceptions;
+namespace Proppit\Exceptions;
 
 /**
  * Thrown when Proppit returns HTTP 403 "Publisher could not publish".

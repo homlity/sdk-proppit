@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Propit\Tests\Unit;
+namespace Proppit\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Propit\DTO\PublisherResponse;
+use Proppit\DTO\PublisherResponse;
 
 final class PublisherResponseTest extends TestCase
 {

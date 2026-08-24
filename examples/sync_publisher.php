@@ -19,7 +19,7 @@ declare(strict_types=1);
  *     4. Only then run publish_property.php for this publisher.
  *
  * Flow:
- *   1. Load PROPIT_CLIENT_ID / PROPIT_CLIENT_SECRET from .env (system credentials).
+ *   1. Load PROPPIT_CLIENT_ID / PROPPIT_CLIENT_SECRET from .env (system credentials).
  *   2. Generate the external_id for the agency using Homlity's internal ID.
  *   3. Call createOrUpdate() — creates the publisher if new, updates it if it exists.
  *   4. Check isPendingActivation() — it will be true after create/update.
@@ -34,40 +34,40 @@ declare(strict_types=1);
 require __DIR__ . '/../vendor/autoload.php';
 
 use GuzzleHttp\Client;
-use Propit\Api\PublisherApi;
-use Propit\Api\PropertyApi;
-use Propit\Auth\ClientCredentialsAuthenticator;
-use Propit\Config\PropitConfig;
-use Propit\DTO\PublisherPayload;
-use Propit\Exceptions\ApiException;
-use Propit\Exceptions\AuthException;
-use Propit\Exceptions\RateLimitException;
-use Propit\Exceptions\ValidationException;
-use Propit\Http\GuzzlePropitHttpClient;
-use Propit\Normalizers\PropertyPayloadNormalizer;
-use Propit\Normalizers\PublisherPayloadNormalizer;
-use Propit\PropitClient;
-use Propit\Support\StructuredLogger;
+use Proppit\Api\PublisherApi;
+use Proppit\Api\PropertyApi;
+use Proppit\Auth\ClientCredentialsAuthenticator;
+use Proppit\Config\ProppitConfig;
+use Proppit\DTO\PublisherPayload;
+use Proppit\Exceptions\ApiException;
+use Proppit\Exceptions\AuthException;
+use Proppit\Exceptions\RateLimitException;
+use Proppit\Exceptions\ValidationException;
+use Proppit\Http\GuzzleProppitHttpClient;
+use Proppit\Normalizers\PropertyPayloadNormalizer;
+use Proppit\Normalizers\PublisherPayloadNormalizer;
+use Proppit\ProppitClient;
+use Proppit\Support\StructuredLogger;
 
 // ── 1. System-level configuration (from .env) ────────────────────────────────
-// PROPIT_CLIENT_ID and PROPIT_CLIENT_SECRET are shared credentials for Homlity
+// PROPPIT_CLIENT_ID and PROPPIT_CLIENT_SECRET are shared credentials for Homlity
 // as an API client. They are NOT per-agency values.
 
-$config = PropitConfig::fromArray([
-    'base_url'      => getenv('PROPIT_BASE_URL') ?: 'https://real-time.proppit.com/api/v2',
-    'client_id'     => getenv('PROPIT_CLIENT_ID') ?: '',
-    'client_secret' => getenv('PROPIT_CLIENT_SECRET') ?: '',
-    'country'       => getenv('PROPIT_COUNTRY') ?: 'CO',
-    'timeout'       => (int) (getenv('PROPIT_TIMEOUT') ?: 30),
+$config = ProppitConfig::fromArray([
+    'base_url'      => getenv('PROPPIT_BASE_URL') ?: 'https://real-time.proppit.com/api/v2',
+    'client_id'     => getenv('PROPPIT_CLIENT_ID') ?: '',
+    'client_secret' => getenv('PROPPIT_CLIENT_SECRET') ?: '',
+    'country'       => getenv('PROPPIT_COUNTRY') ?: 'CO',
+    'timeout'       => (int) (getenv('PROPPIT_TIMEOUT') ?: 30),
 ]);
 
 // ── 2. Build the client stack ─────────────────────────────────────────────────
 
 $guzzle = new Client();
 $auth   = new ClientCredentialsAuthenticator($config, $guzzle);
-$http   = new GuzzlePropitHttpClient($guzzle, $config, $auth, new StructuredLogger(false));
+$http   = new GuzzleProppitHttpClient($guzzle, $config, $auth, new StructuredLogger(false));
 
-$client = new PropitClient(
+$client = new ProppitClient(
     properties: new PropertyApi($http, new PropertyPayloadNormalizer(), $config),
     publishers: new PublisherApi($http, new PublisherPayloadNormalizer(), $config),
 );
@@ -148,7 +148,7 @@ try {
     exit(1);
 } catch (AuthException $e) {
     echo "[AuthException] " . $e->getMessage() . "\n";
-    echo "Check PROPIT_CLIENT_ID and PROPIT_CLIENT_SECRET in your .env file.\n";
+    echo "Check PROPPIT_CLIENT_ID and PROPPIT_CLIENT_SECRET in your .env file.\n";
     exit(1);
 } catch (RateLimitException $e) {
     $retry = $e->retryAfter ?? 'unknown';

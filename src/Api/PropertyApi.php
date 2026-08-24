@@ -2,23 +2,23 @@
 
 declare(strict_types=1);
 
-namespace Propit\Api;
+namespace Proppit\Api;
 
-use Propit\Config\PropitConfig;
-use Propit\Contracts\PropertyApiInterface;
-use Propit\Contracts\PropertyPayloadMapperInterface;
-use Propit\Contracts\PropitHttpClientInterface;
-use Propit\DTO\PropertyPayload;
-use Propit\DTO\PropertyResponse;
-use Propit\Exceptions\PublisherNotReadyException;
-use Propit\Exceptions\ValidationException;
+use Proppit\Config\ProppitConfig;
+use Proppit\Contracts\PropertyApiInterface;
+use Proppit\Contracts\PropertyPayloadMapperInterface;
+use Proppit\Contracts\ProppitHttpClientInterface;
+use Proppit\DTO\PropertyPayload;
+use Proppit\DTO\PropertyResponse;
+use Proppit\Exceptions\PublisherNotReadyException;
+use Proppit\Exceptions\ValidationException;
 
 final class PropertyApi implements PropertyApiInterface
 {
     public function __construct(
-        private readonly PropitHttpClientInterface $http,
+        private readonly ProppitHttpClientInterface $http,
         private readonly PropertyPayloadMapperInterface $mapper,
-        private readonly PropitConfig $config,
+        private readonly ProppitConfig $config,
     ) {
     }
 
@@ -60,7 +60,7 @@ final class PropertyApi implements PropertyApiInterface
     {
         $externalId = $this->config->publisherExternalId();
         if ($externalId === null || $externalId === '') {
-            throw new ValidationException('PROPIT_PUBLISHER_EXTERNAL_ID is required for find/delete operations.');
+            throw new ValidationException('PROPPIT_PUBLISHER_EXTERNAL_ID is required for find/delete operations.');
         }
 
         return $this->findByExternalId($externalId, $referenceId)
@@ -82,7 +82,7 @@ final class PropertyApi implements PropertyApiInterface
     {
         $externalId = $this->config->publisherExternalId();
         if ($externalId === null || $externalId === '') {
-            throw new ValidationException('PROPIT_PUBLISHER_EXTERNAL_ID is required for find/delete operations.');
+            throw new ValidationException('PROPPIT_PUBLISHER_EXTERNAL_ID is required for find/delete operations.');
         }
 
         $response = $this->http->request('DELETE', $this->adPath($referenceId), query: ['externalId' => $externalId]);

@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Propit\Config;
+namespace Proppit\Config;
 
-use Propit\Exceptions\AuthException;
+use Proppit\Exceptions\AuthException;
 use InvalidArgumentException;
 
-final class PropitConfig
+final class ProppitConfig
 {
     private function __construct(
         private string $baseUrl,
@@ -25,22 +25,22 @@ final class PropitConfig
         $this->baseUrl = rtrim($this->baseUrl, '/');
 
         if (!filter_var($this->baseUrl, FILTER_VALIDATE_URL)) {
-            throw new InvalidArgumentException('Invalid PROPIT_BASE_URL.');
+            throw new InvalidArgumentException('Invalid PROPPIT_BASE_URL.');
         }
         if ($this->clientId === '') {
-            throw new AuthException('Missing PROPIT_CLIENT_ID. Set it in your .env file.');
+            throw new AuthException('Missing PROPPIT_CLIENT_ID. Set it in your .env file.');
         }
         if ($this->clientSecret === '') {
-            throw new AuthException('Missing PROPIT_CLIENT_SECRET. Set it in your .env file.');
+            throw new AuthException('Missing PROPPIT_CLIENT_SECRET. Set it in your .env file.');
         }
         if ($this->timeout <= 0) {
-            throw new InvalidArgumentException('PROPIT_TIMEOUT must be > 0.');
+            throw new InvalidArgumentException('PROPPIT_TIMEOUT must be > 0.');
         }
         if ($this->retryAttempts < 0) {
-            throw new InvalidArgumentException('PROPIT_RETRY_ATTEMPTS must be >= 0.');
+            throw new InvalidArgumentException('PROPPIT_RETRY_ATTEMPTS must be >= 0.');
         }
         if ($this->retryDelayMs < 0) {
-            throw new InvalidArgumentException('PROPIT_RETRY_DELAY_MS must be >= 0.');
+            throw new InvalidArgumentException('PROPPIT_RETRY_DELAY_MS must be >= 0.');
         }
     }
 

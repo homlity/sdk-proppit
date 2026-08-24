@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Propit\Exceptions;
+namespace Proppit\Exceptions;
 
 use RuntimeException;
 
-class PropitException extends RuntimeException
+class ProppitException extends RuntimeException
 {
     public function __construct(string $message, protected array $context = [], int $code = 0, ?\Throwable $previous = null)
     {

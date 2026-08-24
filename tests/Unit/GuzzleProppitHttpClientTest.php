@@ -2,30 +2,30 @@
 
 declare(strict_types=1);
 
-namespace Propit\Tests\Unit;
+namespace Proppit\Tests\Unit;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
-use Propit\Auth\ClientCredentialsAuthenticator;
-use Propit\Config\PropitConfig;
-use Propit\Contracts\PropitAuthenticatorInterface;
-use Propit\Exceptions\ApiException;
-use Propit\Exceptions\AuthException;
-use Propit\Exceptions\ForbiddenException;
-use Propit\Exceptions\PublisherNotReadyException;
-use Propit\Exceptions\PublisherPermissionException;
-use Propit\Exceptions\RateLimitException;
-use Propit\Http\GuzzlePropitHttpClient;
-use Propit\Support\StructuredLogger;
+use Proppit\Auth\ClientCredentialsAuthenticator;
+use Proppit\Config\ProppitConfig;
+use Proppit\Contracts\ProppitAuthenticatorInterface;
+use Proppit\Exceptions\ApiException;
+use Proppit\Exceptions\AuthException;
+use Proppit\Exceptions\ForbiddenException;
+use Proppit\Exceptions\PublisherNotReadyException;
+use Proppit\Exceptions\PublisherPermissionException;
+use Proppit\Exceptions\RateLimitException;
+use Proppit\Http\GuzzleProppitHttpClient;
+use Proppit\Support\StructuredLogger;
 
-final class GuzzlePropitHttpClientTest extends TestCase
+final class GuzzleProppitHttpClientTest extends TestCase
 {
-    private PropitConfig $config;
+    private ProppitConfig $config;
 
     protected function setUp(): void
     {
-        $this->config = PropitConfig::fromArray([
+        $this->config = ProppitConfig::fromArray([
             'base_url'      => 'https://real-time.proppit.com/api/v2',
             'client_id'     => 'test-client-id',
             'client_secret' => 'test-client-secret',
@@ -35,17 +35,17 @@ final class GuzzlePropitHttpClientTest extends TestCase
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
-    private function makeClient(int $status, array $body = [], array $headers = []): GuzzlePropitHttpClient
+    private function makeClient(int $status, array $body = [], array $headers = []): GuzzleProppitHttpClient
     {
         $json    = json_encode($body);
         $resp    = new Response($status, array_merge(['Content-Type' => 'application/json'], $headers), $json);
         $guzzle  = $this->createMock(ClientInterface::class);
         $guzzle->method('request')->willReturn($resp);
 
-        $auth = $this->createMock(PropitAuthenticatorInterface::class);
+        $auth = $this->createMock(ProppitAuthenticatorInterface::class);
         $auth->method('authenticate')->willReturnArgument(0);
 
-        return new GuzzlePropitHttpClient($guzzle, $this->config, $auth, new StructuredLogger(false));
+        return new GuzzleProppitHttpClient($guzzle, $this->config, $auth, new StructuredLogger(false));
     }
 
     // ── 401 → AuthException ───────────────────────────────────────────────────
@@ -205,7 +205,7 @@ final class GuzzlePropitHttpClientTest extends TestCase
     public function test_429_throws_RateLimitException(): void
     {
         // config retryAttempts=0 to avoid internal retry loop in test
-        $config = PropitConfig::fromArray([
+        $config = ProppitConfig::fromArray([
             'base_url'       => 'https://real-time.proppit.com/api/v2',
             'client_id'      => 'u',
             'client_secret'  => 'p',
@@ -217,10 +217,10 @@ final class GuzzlePropitHttpClientTest extends TestCase
         $guzzle = $this->createMock(ClientInterface::class);
         $guzzle->method('request')->willReturn($resp);
 
-        $auth = $this->createMock(PropitAuthenticatorInterface::class);
+        $auth = $this->createMock(ProppitAuthenticatorInterface::class);
         $auth->method('authenticate')->willReturnArgument(0);
 
-        $client = new GuzzlePropitHttpClient($guzzle, $config, $auth, new StructuredLogger(false));
+        $client = new GuzzleProppitHttpClient($guzzle, $config, $auth, new StructuredLogger(false));
 
         $this->expectException(RateLimitException::class);
         $client->request('POST', '/proppit/CO/ads');
@@ -230,7 +230,7 @@ final class GuzzlePropitHttpClientTest extends TestCase
 
     public function test_500_throws_ApiException(): void
     {
-        $config = PropitConfig::fromArray([
+        $config = ProppitConfig::fromArray([
             'base_url'       => 'https://real-time.proppit.com/api/v2',
             'client_id'      => 'u',
             'client_secret'  => 'p',
@@ -241,10 +241,10 @@ final class GuzzlePropitHttpClientTest extends TestCase
         $guzzle = $this->createMock(ClientInterface::class);
         $guzzle->method('request')->willReturn($resp);
 
-        $auth = $this->createMock(PropitAuthenticatorInterface::class);
+        $auth = $this->createMock(ProppitAuthenticatorInterface::class);
         $auth->method('authenticate')->willReturnArgument(0);
 
-        $client = new GuzzlePropitHttpClient($guzzle, $config, $auth, new StructuredLogger(false));
+        $client = new GuzzleProppitHttpClient($guzzle, $config, $auth, new StructuredLogger(false));
 
         $this->expectException(ApiException::class);
         $client->request('POST', '/proppit/CO/ads');

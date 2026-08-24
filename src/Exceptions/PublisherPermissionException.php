@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Propit\Exceptions;
+namespace Proppit\Exceptions;
 
-use Propit\Support\StructuredLogger;
+use Proppit\Support\StructuredLogger;
 
 /**
  * Thrown when Proppit returns HTTP 403 "Publisher could not publish".

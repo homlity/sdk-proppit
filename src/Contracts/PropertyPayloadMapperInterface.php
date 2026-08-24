@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Propit\Contracts;
+namespace Proppit\Contracts;
 
-use Propit\DTO\PropertyPayload;
-use Propit\Exceptions\ValidationException;
+use Proppit\DTO\PropertyPayload;
+use Proppit\Exceptions\ValidationException;
 
 interface PropertyPayloadMapperInterface
 {

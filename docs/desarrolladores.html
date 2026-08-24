@@ -1,0 +1,1303 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="description" content="Guia para desarrolladores del SDK homlity/sdk-proppit: publica inmuebles en Proppit desde PHP y Laravel.">
+<title>Homlity SDK para Proppit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=IBM+Plex+Sans:wght@400;500;600&family=JetBrains+Mono:wght@400;700&display=swap">
+
+<style>
+:root{
+  --ground:#FBFAF8;
+  --surface:#FFFFFF;
+  --surface-2:#F4F1EE;
+  --ink:#26283A;
+  --ink-2:#4A4D61;
+  --muted:#71738A;
+  --border:#E4DFDA;
+  --border-strong:#D2CCC5;
+  --accent:#E8503A;
+  --accent-soft:#FDEDE9;
+  --accent-ink:#B8391F;
+  --navy:#383B50;
+  --ok:#1B7A50;
+  --ok-soft:#E6F3EC;
+  --warn:#9C6608;
+  --warn-soft:#FBF0DC;
+  --danger:#B93A22;
+  --danger-soft:#FBEAE5;
+  --code-bg:#2A2C3B;
+  --code-ink:#E9E6E3;
+  --code-key:#FF9E88;
+  --code-str:#9FD8A8;
+  --code-com:#8B8FA6;
+  --plate:#FFFFFF;
+  --shadow:0 1px 2px rgba(38,40,58,.05), 0 8px 24px -12px rgba(38,40,58,.14);
+  --radius:10px;
+  --maxw:74ch;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#15161D;
+    --surface:#1C1E27;
+    --surface-2:#232532;
+    --ink:#E9E7E9;
+    --ink-2:#C3C2CC;
+    --muted:#9597A8;
+    --border:#2C2E3B;
+    --border-strong:#3A3D4D;
+    --accent:#FF7A63;
+    --accent-soft:#33211E;
+    --accent-ink:#FFA694;
+    --navy:#B8BBD0;
+    --ok:#5FC894;
+    --ok-soft:#16291F;
+    --warn:#E0AC55;
+    --warn-soft:#2B2317;
+    --danger:#F08464;
+    --danger-soft:#2E1C17;
+    --code-bg:#11121A;
+    --code-ink:#DDDAE2;
+    --code-key:#FF9E88;
+    --code-str:#9FD8A8;
+    --code-com:#767A92;
+    --plate:#F2EFEC;
+    --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#15161D;
+  --surface:#1C1E27;
+  --surface-2:#232532;
+  --ink:#E9E7E9;
+  --ink-2:#C3C2CC;
+  --muted:#9597A8;
+  --border:#2C2E3B;
+  --border-strong:#3A3D4D;
+  --accent:#FF7A63;
+  --accent-soft:#33211E;
+  --accent-ink:#FFA694;
+  --navy:#B8BBD0;
+  --ok:#5FC894;
+  --ok-soft:#16291F;
+  --warn:#E0AC55;
+  --warn-soft:#2B2317;
+  --danger:#F08464;
+  --danger-soft:#2E1C17;
+  --code-bg:#11121A;
+  --code-ink:#DDDAE2;
+  --code-key:#FF9E88;
+  --code-str:#9FD8A8;
+  --code-com:#767A92;
+  --plate:#F2EFEC;
+  --shadow:0 1px 2px rgba(0,0,0,.3), 0 8px 24px -12px rgba(0,0,0,.6);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:24px}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto} *{animation-duration:.001ms !important;transition-duration:.001ms !important}}
+
+body{
+  margin:0;
+  background:var(--ground);
+  color:var(--ink);
+  font-family:"IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size:16px;
+  line-height:1.65;
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ── Shell ───────────────────────────────────────────── */
+.shell{max-width:1200px;margin:0 auto;padding:0 24px 96px;display:grid;grid-template-columns:236px minmax(0,1fr);gap:56px;align-items:start}
+@media (max-width:960px){.shell{grid-template-columns:minmax(0,1fr);gap:0}}
+
+/* ── Masthead ────────────────────────────────────────── */
+.masthead{grid-column:1/-1;padding:40px 0 32px;border-bottom:1px solid var(--border)}
+.logo-plate{display:inline-block;background:var(--plate);border-radius:14px;padding:14px 20px;line-height:0;box-shadow:var(--shadow)}
+.logo-plate img{width:280px;max-width:100%;height:auto;display:block}
+.masthead h1{
+  font-family:"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  font-weight:800;font-size:clamp(2.1rem,5vw,3.1rem);line-height:1.04;letter-spacing:-.02em;
+  margin:26px 0 0;text-wrap:balance;color:var(--ink);
+}
+.masthead h1 em{font-style:normal;color:var(--accent)}
+.lede{max-width:62ch;margin:14px 0 0;font-size:1.09rem;color:var(--ink-2)}
+.linkbar{display:flex;flex-wrap:wrap;gap:8px;margin-top:22px}
+.linkbar a{
+  display:inline-flex;align-items:center;gap:7px;
+  font-size:.855rem;font-weight:500;text-decoration:none;
+  color:var(--ink-2);background:var(--surface);
+  border:1px solid var(--border);border-radius:999px;padding:6px 14px;
+  transition:border-color .15s, color .15s, background .15s;
+}
+.linkbar a:hover{border-color:var(--accent);color:var(--accent)}
+.linkbar a:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.linkbar a .dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.facts{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:24px;font-size:.83rem;color:var(--muted)}
+.facts b{display:block;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.86rem;font-weight:400;color:var(--ink);letter-spacing:-.01em}
+.facts span{text-transform:uppercase;letter-spacing:.09em;font-size:.68rem;font-weight:600}
+
+/* ── Nav rail ────────────────────────────────────────── */
+.rail{position:sticky;top:24px;align-self:start;max-height:calc(100vh - 48px);overflow-y:auto;padding-bottom:24px}
+@media (max-width:960px){
+  .rail{position:static;max-height:none;border-bottom:1px solid var(--border);margin-bottom:32px;padding:24px 0}
+}
+.rail-title{font-size:.68rem;text-transform:uppercase;letter-spacing:.11em;font-weight:600;color:var(--muted);margin:24px 0 10px}
+.rail-title:first-child{margin-top:0}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+.rail a{
+  display:block;text-decoration:none;color:var(--ink-2);font-size:.875rem;
+  padding:4px 10px;border-left:2px solid transparent;border-radius:0 4px 4px 0;
+  transition:color .15s, border-color .15s, background .15s;
+}
+.rail a:hover{color:var(--accent);background:var(--surface)}
+.rail a:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.rail a.on{color:var(--accent);border-left-color:var(--accent);font-weight:600;background:var(--accent-soft)}
+
+/* ── Content ─────────────────────────────────────────── */
+main{min-width:0;padding-top:40px}
+@media (max-width:960px){main{padding-top:0}}
+section{margin:0 0 60px;scroll-margin-top:24px}
+h2{
+  font-family:"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  font-weight:700;font-size:1.72rem;line-height:1.18;letter-spacing:-.017em;
+  margin:0 0 4px;color:var(--ink);text-wrap:balance;
+}
+h3{
+  font-family:"Bricolage Grotesque", ui-sans-serif, system-ui, sans-serif;
+  font-weight:700;font-size:1.09rem;letter-spacing:-.008em;
+  margin:34px 0 8px;color:var(--ink);text-wrap:balance;
+}
+h4{font-size:.82rem;text-transform:uppercase;letter-spacing:.09em;font-weight:600;color:var(--muted);margin:26px 0 8px}
+.eyebrow{font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.72rem;letter-spacing:.06em;color:var(--accent);text-transform:uppercase;display:block;margin-bottom:6px}
+p{margin:0 0 14px;max-width:var(--maxw)}
+ul,ol.plain{max-width:var(--maxw);padding-left:20px;margin:0 0 16px}
+li{margin-bottom:5px}
+a{color:var(--accent-ink);text-decoration-color:color-mix(in srgb, var(--accent) 40%, transparent);text-underline-offset:2px}
+a:hover{text-decoration-color:var(--accent)}
+code{
+  font-family:"JetBrains Mono",ui-monospace,SFMono-Regular,monospace;
+  font-size:.855em;background:var(--surface-2);border:1px solid var(--border);
+  padding:.1em .38em;border-radius:5px;color:var(--ink);white-space:nowrap;
+}
+
+/* ── Code blocks ─────────────────────────────────────── */
+.code{position:relative;margin:0 0 18px;border-radius:var(--radius);background:var(--code-bg);border:1px solid color-mix(in srgb, var(--code-bg) 78%, #fff 22%);overflow:hidden}
+.code-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:7px 12px 7px 14px;border-bottom:1px solid rgba(255,255,255,.08)}
+.code-lang{font-family:"JetBrains Mono",monospace;font-size:.68rem;letter-spacing:.09em;text-transform:uppercase;color:var(--code-com)}
+.copy{
+  font-family:"IBM Plex Sans",sans-serif;font-size:.72rem;font-weight:500;
+  background:transparent;border:1px solid rgba(255,255,255,.16);color:#C9C6D2;
+  padding:3px 10px;border-radius:5px;cursor:pointer;transition:background .15s,color .15s,border-color .15s;
+}
+.copy:hover{background:rgba(255,255,255,.09);color:#fff}
+.copy:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.copy.done{color:var(--code-str);border-color:color-mix(in srgb,var(--code-str) 45%,transparent)}
+.code pre{margin:0;padding:14px 16px;overflow-x:auto;font-family:"JetBrains Mono",ui-monospace,monospace;font-size:.812rem;line-height:1.72;color:var(--code-ink);tab-size:2}
+.code pre .c{color:var(--code-com);font-style:italic}
+.code pre .k{color:var(--code-key)}
+.code pre .s{color:var(--code-str)}
+
+/* ── Tables ──────────────────────────────────────────── */
+.tw{overflow-x:auto;margin:0 0 20px;border:1px solid var(--border);border-radius:var(--radius);background:var(--surface)}
+table{border-collapse:collapse;width:100%;font-size:.875rem}
+th,td{text-align:left;padding:9px 14px;border-bottom:1px solid var(--border);vertical-align:top}
+th{font-size:.7rem;text-transform:uppercase;letter-spacing:.08em;font-weight:600;color:var(--muted);background:var(--surface-2);white-space:nowrap}
+tr:last-child td{border-bottom:none}
+td code{background:transparent;border:none;padding:0;white-space:normal;color:var(--accent-ink)}
+td.nw{white-space:nowrap}
+.num{font-variant-numeric:tabular-nums}
+
+/* ── Callouts ────────────────────────────────────────── */
+.note{border-left:3px solid var(--border-strong);background:var(--surface);padding:13px 16px;border-radius:0 var(--radius) var(--radius) 0;margin:0 0 18px;max-width:var(--maxw);font-size:.925rem}
+.note p:last-child{margin-bottom:0}
+.note.warn{border-left-color:var(--warn);background:var(--warn-soft)}
+.note.danger{border-left-color:var(--danger);background:var(--danger-soft)}
+.note.ok{border-left-color:var(--ok);background:var(--ok-soft)}
+.note.accent{border-left-color:var(--accent);background:var(--accent-soft)}
+.note strong{color:var(--ink)}
+
+/* ── Cards / grids ───────────────────────────────────── */
+.grid{display:grid;gap:12px;margin:0 0 20px}
+.grid.two{grid-template-columns:repeat(auto-fit,minmax(240px,1fr))}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:15px 17px}
+.card h5{margin:0 0 5px;font-family:"Bricolage Grotesque",sans-serif;font-size:.95rem;font-weight:700;color:var(--ink)}
+.card p{margin:0;font-size:.885rem;color:var(--ink-2);max-width:none}
+
+/* ── Steps (real sequence) ───────────────────────────── */
+.steps{list-style:none;margin:0 0 20px;padding:0;counter-reset:s;display:flex;flex-direction:column;gap:0}
+.steps li{counter-increment:s;position:relative;padding:0 0 22px 44px;border-left:1px solid var(--border);margin-left:13px}
+.steps li:last-child{border-left-color:transparent;padding-bottom:0}
+.steps li::before{
+  content:counter(s);position:absolute;left:-13px;top:0;
+  width:26px;height:26px;border-radius:50%;
+  display:grid;place-items:center;
+  background:var(--accent);color:#fff;
+  font-family:"JetBrains Mono",monospace;font-size:.72rem;font-weight:700;
+}
+.steps li h5{margin:2px 0 4px;font-family:"Bricolage Grotesque",sans-serif;font-size:1rem;font-weight:700;color:var(--ink)}
+.steps li p{margin:0 0 8px;font-size:.92rem;color:var(--ink-2)}
+.steps li .code{margin-top:10px}
+
+/* ── Pills ───────────────────────────────────────────── */
+.pill{display:inline-block;font-family:"JetBrains Mono",monospace;font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:999px;white-space:nowrap;letter-spacing:.01em}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+.pill.danger{background:var(--danger-soft);color:var(--danger)}
+.pill.mute{background:var(--surface-2);color:var(--muted)}
+
+/* ── Diagram ─────────────────────────────────────────── */
+.diagram{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:20px;margin:0 0 20px;overflow-x:auto}
+.diagram svg{display:block;min-width:460px;width:100%;height:auto}
+
+/* ── Enum chips ──────────────────────────────────────── */
+.chips{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 6px}
+.chip{font-family:"JetBrains Mono",monospace;font-size:.74rem;background:var(--surface);border:1px solid var(--border);border-radius:5px;padding:2px 7px;color:var(--ink-2)}
+
+/* ── Footer ──────────────────────────────────────────── */
+footer{grid-column:1/-1;border-top:1px solid var(--border);margin-top:24px;padding-top:28px;display:flex;flex-wrap:wrap;gap:20px;align-items:center;justify-content:space-between}
+footer .logo-plate img{width:150px}
+footer p{margin:0;font-size:.83rem;color:var(--muted);max-width:none}
+</style>
+<style>*{margin:0}img,svg{max-width:100%}</style>
+</head>
+<body>
+<div class="shell">
+
+  <header class="masthead">
+    <a class="logo-plate" href="https://homlity.com/desarrolladores/">
+      <img src="data:image/webp;base64,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" alt="Homlity para desarrolladores">
+    </a>
+    <h1>SDK de Proppit<br><em>para PHP y Laravel</em></h1>
+    <p class="lede">Publica, actualiza, consulta y elimina inmuebles en <strong>Proppit</strong> desde tu CRM o lonja, sin escribir una sola llamada HTTP. Autenticación, validación de payloads, reintentos y errores tipados: resueltos.</p>
+
+    <nav class="linkbar" aria-label="Enlaces del proyecto">
+      <a href="https://homlity.com/"><span class="dot"></span>homlity.com</a>
+      <a href="https://homlity.com/desarrolladores/">Portal de desarrolladores</a>
+      <a href="https://github.com/homlity/sdk-propit">GitHub</a>
+      <a href="https://packagist.org/packages/homlity/sdk-proppit">Packagist</a>
+      <a href="https://real-time.proppit.com/api/v2/docs">API de Proppit</a>
+    </nav>
+
+    <div class="facts">
+      <div><span>Paquete</span><b>homlity/sdk-proppit</b></div>
+      <div><span>PHP</span><b>&ge; 8.1</b></div>
+      <div><span>Laravel</span><b>9 · 10 · 11</b></div>
+      <div><span>Namespace</span><b>Proppit\</b></div>
+      <div><span>API</span><b>Proppit Real-Time v2</b></div>
+    </div>
+  </header>
+
+  <nav class="rail" aria-label="Contenido">
+    <p class="rail-title">Empezar</p>
+    <ol>
+      <li><a href="#que-es">Qué resuelve</a></li>
+      <li><a href="#arquitectura">Arquitectura</a></li>
+      <li><a href="#instalacion">Instalación</a></li>
+      <li><a href="#configuracion">Configuración</a></li>
+      <li><a href="#autenticacion">Autenticación</a></li>
+      <li><a href="#quickstart">Quick start</a></li>
+    </ol>
+    <p class="rail-title">Integrar</p>
+    <ol>
+      <li><a href="#flujo">Flujo de integración</a></li>
+      <li><a href="#publishers">Publishers</a></li>
+      <li><a href="#propiedades">Propiedades</a></li>
+      <li><a href="#payload">Payload de anuncio</a></li>
+    </ol>
+    <p class="rail-title">Operar</p>
+    <ol>
+      <li><a href="#errores">Errores</a></li>
+      <li><a href="#reintentos">Reintentos y límites</a></li>
+      <li><a href="#logging">Logging</a></li>
+      <li><a href="#extender">Extender vía DI</a></li>
+      <li><a href="#testing">Testing</a></li>
+      <li><a href="#troubleshooting">Troubleshooting</a></li>
+      <li><a href="#recursos">Recursos</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="que-es">
+    <span class="eyebrow">Para qué sirve</span>
+    <h2>Un puente entre tu inventario y Proppit</h2>
+    <p>Proppit (LIFULL Connect) es el portal donde las inmobiliarias publican su inventario. Su <strong>Real-Time API v2</strong> permite enviar anuncios por API en lugar de cargarlos a mano desde el panel web. Este SDK es la capa PHP que Homlity —y cualquier CRM, lonja o portal integrado con Homlity— usa para hablar con esa API.</p>
+
+    <h3>Qué te ahorra</h3>
+    <div class="grid two">
+      <div class="card"><h5>Token que expira</h5><p>Pide el token, lo cachea en memoria y lo renueva 30 s antes de vencer. Tú nunca lo tocas.</p></div>
+      <div class="card"><h5>Payloads rechazados</h5><p>Valida enums de moneda, locale, áreas, coordenadas y estrato <em>antes</em> de gastar una llamada HTTP.</p></div>
+      <div class="card"><h5>Errores crudos</h5><p>Convierte cada status en una excepción tipada que puedes capturar por caso de negocio.</p></div>
+      <div class="card"><h5>Caídas y 429</h5><p>Reintenta 5xx y rate limits con backoff exponencial y jitter, respetando <code>Retry-After</code>.</p></div>
+      <div class="card"><h5>Publisher no habilitado</h5><p>Modela el estado real de activación y distingue el 403 de Proppit de un problema de credenciales.</p></div>
+      <div class="card"><h5>Secretos en logs</h5><p>Redacta tokens, secrets, emails y teléfonos de forma recursiva en todo lo que se loguea.</p></div>
+    </div>
+
+    <h3>Qué no hace, por diseño</h3>
+    <ul>
+      <li><strong>No gestiona colas ni jobs.</strong> Eso lo pone tu aplicación (<code>ShouldQueue</code>, Horizon).</li>
+      <li><strong>No persiste nada.</strong> Tú decides qué guardar: <code>referenceId</code>, estado del publisher, timestamps.</li>
+      <li><strong>No sube imágenes.</strong> Envías URLs públicas y el ingester de Proppit las descarga.</li>
+      <li><strong>No implementa <code>GET /property-types</code></strong> todavía — el catálogo de tipos, amenities y reglas por país.</li>
+    </ul>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="arquitectura">
+    <span class="eyebrow">Cómo está hecho</span>
+    <h2>Arquitectura en 30 segundos</h2>
+    <p>Cinco capas, cada una detrás de una interfaz en <code>src/Contracts/</code>. Cualquier pieza es reemplazable desde el contenedor de Laravel.</p>
+
+    <div class="diagram">
+      <svg viewBox="0 0 620 320" role="img" aria-label="Diagrama de capas: tu aplicación llama a ProppitClient, que delega en PropertyApi y PublisherApi; estos normalizan el payload, pasan por el cliente HTTP de Guzzle con reintentos, que se autentica con un Bearer token y llega a la API de Proppit.">
+        <defs>
+          <marker id="ar" markerWidth="9" markerHeight="9" refX="7" refY="4.5" orient="auto">
+            <path d="M0,1 L7,4.5 L0,8 Z" fill="currentColor"/>
+          </marker>
+        </defs>
+        <g font-family="IBM Plex Sans, sans-serif" font-size="12" color="var(--muted)">
+          <!-- rows -->
+          <rect x="130" y="8"   width="360" height="36" rx="8" fill="var(--surface-2)" stroke="var(--border-strong)"/>
+          <text x="310" y="31" text-anchor="middle" fill="var(--ink)" font-weight="600">Tu aplicación · CRM · lonja</text>
+
+          <rect x="130" y="66"  width="360" height="36" rx="8" fill="var(--accent-soft)" stroke="var(--accent)"/>
+          <text x="310" y="89" text-anchor="middle" fill="var(--accent-ink)" font-weight="600" font-family="JetBrains Mono, monospace" font-size="12">ProppitClient</text>
+
+          <rect x="130" y="124" width="172" height="36" rx="8" fill="var(--surface)" stroke="var(--border-strong)"/>
+          <text x="216" y="147" text-anchor="middle" fill="var(--ink)" font-family="JetBrains Mono, monospace" font-size="11.5">PropertyApi</text>
+          <rect x="318" y="124" width="172" height="36" rx="8" fill="var(--surface)" stroke="var(--border-strong)"/>
+          <text x="404" y="147" text-anchor="middle" fill="var(--ink)" font-family="JetBrains Mono, monospace" font-size="11.5">PublisherApi</text>
+
+          <rect x="130" y="182" width="360" height="36" rx="8" fill="var(--surface)" stroke="var(--border-strong)"/>
+          <text x="310" y="205" text-anchor="middle" fill="var(--ink)" font-family="JetBrains Mono, monospace" font-size="11.5">Normalizers</text>
+
+          <rect x="130" y="240" width="360" height="36" rx="8" fill="var(--surface)" stroke="var(--border-strong)"/>
+          <text x="310" y="263" text-anchor="middle" fill="var(--ink)" font-family="JetBrains Mono, monospace" font-size="11.5">GuzzleProppitHttpClient + Authenticator</text>
+
+          <rect x="130" y="292" width="360" height="26" rx="8" fill="var(--navy)" stroke="var(--navy)"/>
+          <text x="310" y="310" text-anchor="middle" fill="var(--ground)" font-weight="600" font-size="11.5">Proppit Real-Time API v2</text>
+
+          <!-- arrows -->
+          <g stroke="currentColor" stroke-width="1.4" fill="none" marker-end="url(#ar)" opacity=".55">
+            <path d="M310,44 L310,62"/>
+            <path d="M240,102 L220,120"/>
+            <path d="M380,102 L400,120"/>
+            <path d="M216,160 L280,178"/>
+            <path d="M404,160 L340,178"/>
+            <path d="M310,218 L310,236"/>
+            <path d="M310,276 L310,288"/>
+          </g>
+
+          <!-- annotations -->
+          <text x="500" y="88"  fill="var(--muted)" font-size="10.5">fachada</text>
+          <text x="500" y="146" fill="var(--muted)" font-size="10.5">endpoints</text>
+          <text x="500" y="204" fill="var(--muted)" font-size="10.5">validación</text>
+          <text x="500" y="256" fill="var(--muted)" font-size="10.5">retries ·</text>
+          <text x="500" y="270" fill="var(--muted)" font-size="10.5">token · logs</text>
+        </g>
+      </svg>
+    </div>
+
+    <h3>Los tres identificadores que debes entender</h3>
+    <p>La confusión más cara de esta integración es mezclar las credenciales del sistema con la identidad de cada inmobiliaria. No son lo mismo.</p>
+
+    <div class="note accent">
+      <p><strong>Regla de oro:</strong> <code>client_id</code> y <code>client_secret</code> identifican a <strong>tu sistema</strong> ante Proppit — se entregan una sola vez y viven solo en el <code>.env</code>. Cada inmobiliaria se identifica con un <code>publisher.externalId</code> que <strong>tú generas y mantienes</strong>.</p>
+    </div>
+
+    <div class="tw"><table>
+      <thead><tr><th>Identificador</th><th>Dónde vive</th><th>Scope</th><th>Ejemplo</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>PROPPIT_CLIENT_ID</code> / <code>SECRET</code></td><td class="nw">.env</td><td>Toda la instalación</td><td class="nw"><code>—</code></td></tr>
+        <tr><td class="nw"><code>publisher.externalId</code></td><td class="nw">Base de datos</td><td>Por inmobiliaria</td><td class="nw"><code>homlity_agency_42</code></td></tr>
+        <tr><td class="nw"><code>proppit_publisher_id</code></td><td class="nw">Base de datos</td><td>Por inmobiliaria</td><td>Devuelto por Proppit</td></tr>
+        <tr><td class="nw"><code>referenceId</code></td><td class="nw">Base de datos</td><td>Por inmueble</td><td class="nw"><code>CO-1001</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="code"><div class="code-head"><span class="code-lang">jerarquía</span><button class="copy" type="button">Copiar</button></div><pre>Homlity  <span class="c">(PROPPIT_CLIENT_ID / PROPPIT_CLIENT_SECRET)</span>
+├── Publisher A   id = homlity_agency_10     <span class="c">← Inmobiliaria Alfa</span>
+│   └── Ads: CO-001, CO-002, CO-003          <span class="c">← referenceId generado por ti</span>
+└── Publisher B   id = homlity_agency_25     <span class="c">← Inmobiliaria Beta</span>
+    └── Ads: CO-100, CO-101</pre></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="instalacion">
+    <span class="eyebrow">Paso 1</span>
+    <h2>Instalación</h2>
+    <p>Requisitos: <strong>PHP ≥ 8.1</strong>, <code>ext-json</code> y Composer 2. Laravel es opcional — el SDK funciona standalone.</p>
+
+    <div class="code"><div class="code-head"><span class="code-lang">bash</span><button class="copy" type="button">Copiar</button></div><pre>composer require homlity/sdk-proppit</pre></div>
+
+    <div class="note warn">
+      <p><strong>Estado actual del paquete.</strong> El repositorio está publicado en Packagist pero todavía no tiene un tag de versión estable, así que Composer no encuentra ninguna versión que instalar. Hasta que se publique <code>v1.0.0</code>, instala desde la rama principal.</p>
+    </div>
+
+    <div class="code"><div class="code-head"><span class="code-lang">bash</span><button class="copy" type="button">Copiar</button></div><pre>composer require homlity/sdk-proppit:dev-main</pre></div>
+
+    <p>Si tu proyecto usa <code>minimum-stability: stable</code>, añade a tu <code>composer.json</code>:</p>
+    <div class="code"><div class="code-head"><span class="code-lang">json</span><button class="copy" type="button">Copiar</button></div><pre>{
+  <span class="k">"minimum-stability"</span>: <span class="s">"dev"</span>,
+  <span class="k">"prefer-stable"</span>: <span class="s">true</span>
+}</pre></div>
+
+    <h3>Sin pasar por Packagist</h3>
+    <div class="code"><div class="code-head"><span class="code-lang">json</span><button class="copy" type="button">Copiar</button></div><pre>{
+  <span class="k">"repositories"</span>: [
+    { <span class="k">"type"</span>: <span class="s">"vcs"</span>, <span class="k">"url"</span>: <span class="s">"https://github.com/homlity/sdk-propit"</span> }
+  ],
+  <span class="k">"require"</span>: {
+    <span class="k">"homlity/sdk-proppit"</span>: <span class="s">"dev-main"</span>
+  }
+}</pre></div>
+
+    <h3>Dependencias</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Paquete</th><th>Versión</th><th>Para qué</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>guzzlehttp/guzzle</code></td><td class="nw num">^7.8</td><td>Transporte HTTP</td></tr>
+        <tr><td class="nw"><code>psr/log</code></td><td class="nw num">^2.0 | ^3.0</td><td>Logging estructurado</td></tr>
+        <tr><td class="nw"><code>illuminate/support</code></td><td class="nw num">^9 | ^10 | ^11</td><td>Service provider de Laravel</td></tr>
+      </tbody>
+    </table></div>
+    <p>En Laravel el SDK se registra solo por <strong>package auto-discovery</strong> (<code>Proppit\Laravel\ProppitServiceProvider</code>). No hay que tocar <code>config/app.php</code>.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="configuracion">
+    <span class="eyebrow">Paso 2</span>
+    <h2>Configuración</h2>
+
+    <div class="code"><div class="code-head"><span class="code-lang">bash</span><button class="copy" type="button">Copiar</button></div><pre>php artisan vendor:publish --tag=proppit-config
+<span class="c"># → config/proppit.php</span></pre></div>
+
+    <div class="code"><div class="code-head"><span class="code-lang">dotenv</span><button class="copy" type="button">Copiar</button></div><pre><span class="c"># ── Obligatorias ────────────────────────────────</span>
+PROPPIT_BASE_URL=https://real-time.proppit.com/api/v2
+PROPPIT_CLIENT_ID=tu-client-id-entregado-por-proppit
+PROPPIT_CLIENT_SECRET=tu-client-secret-entregado-por-proppit
+PROPPIT_COUNTRY=CO
+
+<span class="c"># ── Opcionales ──────────────────────────────────</span>
+PROPPIT_PUBLISHER_EXTERNAL_ID=
+PROPPIT_TIMEOUT=30
+PROPPIT_RETRY_ATTEMPTS=3
+PROPPIT_RETRY_DELAY_MS=500
+PROPPIT_USER_AGENT="Homlity-Proppit-SDK/1.0"
+PROPPIT_ENABLE_STRUCTURED_LOGS=true</pre></div>
+
+    <div class="tw"><table>
+      <thead><tr><th>Variable</th><th>Default</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>PROPPIT_BASE_URL</code></td><td class="nw"><code>…/api/v2</code></td><td>Base de la API. Se valida como URL; se le quita la barra final.</td></tr>
+        <tr><td class="nw"><code>PROPPIT_CLIENT_ID</code></td><td class="nw">—</td><td><strong>Requerido.</strong> Viaja como <code>user</code> en <code>POST /token</code>.</td></tr>
+        <tr><td class="nw"><code>PROPPIT_CLIENT_SECRET</code></td><td class="nw">—</td><td><strong>Requerido.</strong> Viaja como <code>password</code>. Nunca se loguea.</td></tr>
+        <tr><td class="nw"><code>PROPPIT_COUNTRY</code></td><td class="nw"><code>CO</code></td><td>Path param de todos los endpoints. Se normaliza a mayúsculas.</td></tr>
+        <tr><td class="nw"><code>PROPPIT_PUBLISHER_EXTERNAL_ID</code></td><td class="nw">null</td><td><code>externalId</code> por defecto para <code>find()</code> y <code>delete()</code> de anuncios. Déjalo vacío si eres multi-inmobiliaria.</td></tr>
+        <tr><td class="nw"><code>PROPPIT_TIMEOUT</code></td><td class="nw num">30</td><td>Segundos por request. Debe ser &gt; 0.</td></tr>
+        <tr><td class="nw"><code>PROPPIT_RETRY_ATTEMPTS</code></td><td class="nw num">3</td><td>Reintentos adicionales sobre 429 y 5xx.</td></tr>
+        <tr><td class="nw"><code>PROPPIT_RETRY_DELAY_MS</code></td><td class="nw num">500</td><td>Base del backoff exponencial, en milisegundos.</td></tr>
+        <tr><td class="nw"><code>PROPPIT_USER_AGENT</code></td><td class="nw"><code>Homlity-Proppit-SDK/1.0</code></td><td>User-Agent enviado en cada request.</td></tr>
+        <tr><td class="nw"><code>PROPPIT_ENABLE_STRUCTURED_LOGS</code></td><td class="nw"><code>true</code></td><td>Activa el logger PSR-3 estructurado.</td></tr>
+      </tbody>
+    </table></div>
+
+    <h4>Países soportados</h4>
+    <div class="chips"><span class="chip">AE</span><span class="chip">AR</span><span class="chip">CL</span><span class="chip">CO</span><span class="chip">EC</span><span class="chip">ES</span><span class="chip">ID</span><span class="chip">MX</span><span class="chip">PA</span><span class="chip">PE</span><span class="chip">PH</span><span class="chip">TH</span><span class="chip">VN</span></div>
+
+    <h3>Falla rápido, antes de la primera llamada</h3>
+    <p><code>ProppitConfig</code> valida al construirse:</p>
+    <div class="tw"><table>
+      <thead><tr><th>Situación</th><th>Excepción</th></tr></thead>
+      <tbody>
+        <tr><td><code>base_url</code> no es una URL válida</td><td class="nw"><code>InvalidArgumentException</code></td></tr>
+        <tr><td><code>client_id</code> vacío</td><td class="nw"><code>AuthException</code></td></tr>
+        <tr><td><code>client_secret</code> vacío</td><td class="nw"><code>AuthException</code></td></tr>
+        <tr><td><code>timeout &lt;= 0</code>, <code>retry_attempts &lt; 0</code>, <code>retry_delay_ms &lt; 0</code></td><td class="nw"><code>InvalidArgumentException</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <p>Para depurar la configuración sin filtrar secretos:</p>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre>logger()-&gt;info(<span class="s">'proppit_config'</span>, app(ProppitConfig::class)-&gt;redacted());
+<span class="c">// client_id => "abcd***", client_secret => "***"</span></pre></div>
+
+    <h4>Claves solo de config (no de .env)</h4>
+    <div class="tw"><table>
+      <thead><tr><th>Clave</th><th>Uso</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>custom_headers</code></td><td>Array de headers añadidos a cada request — útil para IDs de traza internos.</td></tr>
+      </tbody>
+    </table></div>
+    <h4>Alias legacy aceptados</h4>
+    <div class="tw"><table>
+      <thead><tr><th>Legacy (deprecado)</th><th>Actual</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>PROPIT_*</code> <em>(una sola p)</em></td><td class="nw"><code>PROPPIT_*</code></td></tr>
+        <tr><td class="nw"><code>api_user</code> · <code>api_key</code></td><td class="nw"><code>client_id</code></td></tr>
+        <tr><td class="nw"><code>api_password</code> · <code>api_secret</code></td><td class="nw"><code>client_secret</code></td></tr>
+      </tbody>
+    </table></div>
+    <p>Cada clave lee primero el nombre <code>PROPPIT_*</code> y cae al <code>PROPIT_*</code> antiguo si no existe, así que un <code>.env</code> escrito antes del renombrado sigue funcionando sin cambios. Migra a <code>PROPPIT_*</code> cuando puedas.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="autenticacion">
+    <span class="eyebrow">Automático</span>
+    <h2>Autenticación</h2>
+    <p>No tienes que hacer nada. Así funciona por dentro:</p>
+    <ol class="plain">
+      <li><code>ClientCredentialsAuthenticator</code> llama <code>POST {base_url}/token</code> con <code>{"user": CLIENT_ID, "password": CLIENT_SECRET}</code>.</li>
+      <li>Proppit responde <code>{"token": "…", "expiration": &lt;unix_ts&gt;}</code>.</li>
+      <li>El token se guarda <strong>en memoria en la instancia</strong> y se reutiliza.</li>
+      <li>Se renueva cuando faltan menos de <strong>30 segundos</strong> para expirar.</li>
+      <li>Cada request lleva <code>Authorization: Bearer &lt;token&gt;</code>.</li>
+    </ol>
+
+    <div class="tw"><table>
+      <thead><tr><th>Respuesta de <code>/token</code></th><th>Resultado</th></tr></thead>
+      <tbody>
+        <tr><td class="nw">401 · 403</td><td><code>AuthException</code> — "Proppit rejected the client credentials"</td></tr>
+        <tr><td class="nw">2xx sin <code>token</code> o <code>expiration</code></td><td><code>AuthException</code> — respuesta inválida</td></tr>
+        <tr><td class="nw">Error de red</td><td><code>AuthException</code> con la excepción de Guzzle como <code>previous</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="note">
+      <p><strong>Rendimiento:</strong> el token se cachea por instancia y en Laravel <code>ProppitClient</code> es un singleton, así que dentro de un mismo request o job solo se pide un token. Si ejecutas muchos procesos cortos (un comando por inmueble), implementa un <code>ProppitAuthenticatorInterface</code> que cachee el token en Redis y evita pedir uno por proceso.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="quickstart">
+    <span class="eyebrow">Paso 3</span>
+    <h2>Quick start</h2>
+
+    <h3>Con Laravel</h3>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre><span class="k">use</span> Proppit\ProppitClient;
+
+$client = app(ProppitClient::class);   <span class="c">// singleton, ya cableado</span>
+
+$client-&gt;properties();   <span class="c">// PropertyApiInterface</span>
+$client-&gt;publishers();   <span class="c">// PublisherApiInterface</span></pre></div>
+
+    <p>O inyectado por constructor, que es lo habitual en un job:</p>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre><span class="k">final class</span> SincronizarInmuebleJob <span class="k">implements</span> ShouldQueue
+{
+    <span class="k">public function</span> __construct(<span class="k">private readonly int</span> $inmuebleId) {}
+
+    <span class="k">public function</span> handle(ProppitClient $proppit): <span class="k">void</span>
+    {
+        $proppit-&gt;properties()-&gt;publish($this-&gt;payload());
+    }
+}</pre></div>
+
+    <h3>Standalone, sin Laravel</h3>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre><span class="k">use</span> GuzzleHttp\Client;
+<span class="k">use</span> Proppit\Api\{PropertyApi, PublisherApi};
+<span class="k">use</span> Proppit\Auth\ClientCredentialsAuthenticator;
+<span class="k">use</span> Proppit\Config\ProppitConfig;
+<span class="k">use</span> Proppit\Http\GuzzleProppitHttpClient;
+<span class="k">use</span> Proppit\Normalizers\{PropertyPayloadNormalizer, PublisherPayloadNormalizer};
+<span class="k">use</span> Proppit\ProppitClient;
+<span class="k">use</span> Proppit\Support\StructuredLogger;
+
+$config = ProppitConfig::fromArray([
+    <span class="s">'base_url'</span>      =&gt; <span class="s">'https://real-time.proppit.com/api/v2'</span>,
+    <span class="s">'client_id'</span>     =&gt; getenv(<span class="s">'PROPPIT_CLIENT_ID'</span>),
+    <span class="s">'client_secret'</span> =&gt; getenv(<span class="s">'PROPPIT_CLIENT_SECRET'</span>),
+    <span class="s">'country'</span>       =&gt; <span class="s">'CO'</span>,
+]);
+
+$guzzle = <span class="k">new</span> Client();
+$auth   = <span class="k">new</span> ClientCredentialsAuthenticator($config, $guzzle);
+$logger = <span class="k">new</span> StructuredLogger(enabled: <span class="k">true</span>, logger: $miLoggerPsr3);
+$http   = <span class="k">new</span> GuzzleProppitHttpClient($guzzle, $config, $auth, $logger);
+
+$client = <span class="k">new</span> ProppitClient(
+    properties: <span class="k">new</span> PropertyApi($http, <span class="k">new</span> PropertyPayloadNormalizer(), $config),
+    publishers: <span class="k">new</span> PublisherApi($http, <span class="k">new</span> PublisherPayloadNormalizer(), $config),
+);</pre></div>
+
+    <p>El repositorio incluye ejemplos ejecutables en <code>examples/</code>: <code>sync_publisher.php</code>, <code>publish_property.php</code>, <code>update_property.php</code> y <code>find_property.php</code>.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="flujo">
+    <span class="eyebrow">El orden importa</span>
+    <h2>Flujo de integración de una inmobiliaria</h2>
+    <p>Estos pasos son una secuencia real: saltarse el tercero hace que el sexto falle con un 403 que ningún cambio de código resuelve.</p>
+
+    <ol class="steps">
+      <li>
+        <h5>Configurar credenciales del sistema</h5>
+        <p>Una sola vez para toda la instalación: <code>PROPPIT_CLIENT_ID</code>, <code>PROPPIT_CLIENT_SECRET</code> y <code>PROPPIT_COUNTRY</code> en el <code>.env</code>.</p>
+      </li>
+      <li>
+        <h5>Registrar la inmobiliaria como publisher</h5>
+        <p><code>createOrUpdate()</code> con un <code>externalId</code> estable. Guarda <code>proppit_publisher_id</code> y <code>proppit_external_id</code> en tu base de datos.</p>
+      </li>
+      <li>
+        <h5>Solicitar la activación a Proppit</h5>
+        <p>Paso <strong>manual</strong>. Proppit debe habilitar el publisher; el SDK no puede hacerlo por ti. Usa la plantilla de la sección de publishers.</p>
+      </li>
+      <li>
+        <h5>Confirmar que quedó activo</h5>
+        <p>Verifica con <code>status($externalId)</code> que <code>canPublish() === true</code>, o espera confirmación explícita del equipo de Proppit. Marca <code>proppit_can_publish = true</code>.</p>
+      </li>
+      <li>
+        <h5>Depurar el inventario previo de la cuenta</h5>
+        <p>Proppit recomienda eliminar las propiedades cargadas a mano antes del primer sync por API. Si no lo haces, arriesgas duplicados y <code>PUT</code> que sobrescriben el inmueble equivocado.</p>
+      </li>
+      <li>
+        <h5>Publicar por API y guardar el <code>referenceId</code></h5>
+        <p>Solo si <code>proppit_can_publish === true</code>. Persiste el <code>referenceId</code> de cada inmueble: es la única llave para actualizar o eliminar después.</p>
+      </li>
+      <li>
+        <h5>Mantener los cambios por API, no por el panel web</h5>
+        <p>Todo cambio posterior va por <code>update()</code>. Editar desde el panel de Proppit rompe la consistencia con tu base de datos.</p>
+      </li>
+    </ol>
+
+    <h3>Migración sugerida</h3>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre>Schema::table(<span class="s">'inmobiliarias'</span>, <span class="k">function</span> (Blueprint $table) {
+    $table-&gt;string(<span class="s">'proppit_external_id'</span>)-&gt;nullable()-&gt;unique();
+    $table-&gt;string(<span class="s">'proppit_publisher_id'</span>)-&gt;nullable();
+    $table-&gt;string(<span class="s">'proppit_publisher_status'</span>)-&gt;default(<span class="s">'pending_sync'</span>);
+    $table-&gt;boolean(<span class="s">'proppit_can_publish'</span>)-&gt;default(<span class="k">false</span>);
+    $table-&gt;string(<span class="s">'proppit_last_request_id'</span>)-&gt;nullable();
+    $table-&gt;text(<span class="s">'proppit_last_error'</span>)-&gt;nullable();
+    $table-&gt;timestamp(<span class="s">'proppit_last_synced_at'</span>)-&gt;nullable();
+    $table-&gt;timestamp(<span class="s">'proppit_activated_at'</span>)-&gt;nullable();
+});
+
+Schema::table(<span class="s">'inmuebles'</span>, <span class="k">function</span> (Blueprint $table) {
+    $table-&gt;string(<span class="s">'proppit_reference_id'</span>)-&gt;nullable()-&gt;unique();
+    $table-&gt;timestamp(<span class="s">'proppit_published_at'</span>)-&gt;nullable();
+});</pre></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="publishers">
+    <span class="eyebrow">Inmobiliarias</span>
+    <h2>Publishers</h2>
+
+    <div class="note danger">
+      <p><strong>Publisher enviado ≠ publisher activo.</strong> Crear un publisher en Proppit <em>no</em> lo habilita para publicar. Proppit debe activarlo manualmente. Hasta entonces, cada intento de publicar responde <code>{"status": 403, "error": "Publisher could not publish"}</code>. Esto <strong>no</strong> es un problema de credenciales.</p>
+    </div>
+
+    <h3>Registrar o actualizar</h3>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre><span class="k">use</span> Proppit\DTO\PublisherPayload;
+
+$externalId = <span class="s">'homlity_agency_'</span> . $inmobiliaria-&gt;uuid;
+
+$response = $client-&gt;publishers()-&gt;createOrUpdate(<span class="k">new</span> PublisherPayload(
+    externalId: $externalId,              <span class="c">// → campo `id` en la API de Proppit</span>
+    name:       $inmobiliaria-&gt;nombre,
+    email:      $inmobiliaria-&gt;email_contacto,
+    phone:      $inmobiliaria-&gt;telefono,  <span class="c">// opcional</span>
+));
+
+$inmobiliaria-&gt;update([
+    <span class="s">'proppit_external_id'</span>      =&gt; $externalId,
+    <span class="s">'proppit_publisher_id'</span>     =&gt; $response-&gt;publisherId(),
+    <span class="s">'proppit_publisher_status'</span> =&gt; $response-&gt;activationStatus,  <span class="c">// 'pending_activation'</span>
+    <span class="s">'proppit_can_publish'</span>      =&gt; $response-&gt;canPublish(),      <span class="c">// false por defecto</span>
+    <span class="s">'proppit_last_request_id'</span>  =&gt; $response-&gt;requestId,
+    <span class="s">'proppit_last_synced_at'</span>   =&gt; now(),
+]);</pre></div>
+
+    <p><code>createOrUpdate()</code> hace un <code>find()</code> interno y decide entre <code>POST</code> (crear) y <code>PUT</code> (actualizar). Es idempotente.</p>
+
+    <h3>Reglas del <code>externalId</code></h3>
+    <ul>
+      <li><strong>Único y estable</strong> por inmobiliaria — cambiarlo desconecta un publisher ya activado.</li>
+      <li>Solo <code>letras</code>, <code>dígitos</code>, <code>-</code>, <code>_</code>, <code>.</code> y <code>@</code>; máximo 255 caracteres. El SDK lo valida.</li>
+      <li>No uses el email, nombre comercial ni NIT como valor principal: usa el UUID o ID interno.</li>
+      <li>Formato recomendado: <code>homlity_agency_{uuid}</code>.</li>
+    </ul>
+
+    <h3>Estados de activación</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Estado</th><th>Significado</th><th>¿Puede publicar?</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>pending_sync</code></td><td>Todavía no enviado a Proppit</td><td><span class="pill mute">no</span></td></tr>
+        <tr><td class="nw"><code>synced</code></td><td>Enviado; Proppit no confirmó activación</td><td><span class="pill mute">no</span></td></tr>
+        <tr><td class="nw"><code>pending_activation</code></td><td><strong>Default</strong> tras create o update</td><td><span class="pill warn">aún no</span></td></tr>
+        <tr><td class="nw"><code>active</code></td><td>Proppit confirmó que puede publicar</td><td><span class="pill ok">sí</span></td></tr>
+        <tr><td class="nw"><code>cannot_publish</code></td><td>Proppit respondió 403 al publicar</td><td><span class="pill danger">no</span></td></tr>
+        <tr><td class="nw"><code>rejected</code></td><td>Proppit rechazó el publisher</td><td><span class="pill danger">no</span></td></tr>
+        <tr><td class="nw"><code>error</code></td><td>Estado inesperado en la respuesta</td><td><span class="pill mute">no</span></td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="note">
+      <p>Proppit todavía no estandariza el campo de activación, así que <code>PublisherResponse::fromArray()</code> inspecciona <code>canPublish</code>, <code>can_publish</code>, <code>state</code>, <code>activationStatus</code>, <code>active</code> y <code>status</code> — y <strong>solo</strong> marca <code>active</code> si Proppit lo confirma explícitamente. Ante la duda, asume <code>pending_activation</code>.</p>
+    </div>
+
+    <h3>Consultar el estado</h3>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre>$response = $client-&gt;publishers()-&gt;status($externalId);  <span class="c">// lanza ApiException(404) si no existe</span>
+
+<span class="k">if</span> ($response-&gt;canPublish()) {
+    $inmobiliaria-&gt;update([
+        <span class="s">'proppit_publisher_status'</span> =&gt; $response-&gt;activationStatus,  <span class="c">// 'active'</span>
+        <span class="s">'proppit_can_publish'</span>      =&gt; <span class="k">true</span>,
+        <span class="s">'proppit_activated_at'</span>     =&gt; now(),
+    ]);
+}
+
+<span class="c">// find() devuelve null en 404 en vez de lanzar; status() lanza. Elige según el caso.</span>
+$response-&gt;isPendingActivation();  <span class="c">// true si 'pending_activation' o 'synced'</span>
+$response-&gt;raw;                    <span class="c">// respuesta cruda completa para inspección</span></pre></div>
+
+    <h3>Plantilla para solicitar la activación</h3>
+    <div class="code"><div class="code-head"><span class="code-lang">correo a Proppit</span><button class="copy" type="button">Copiar</button></div><pre>Hola equipo Proppit,
+
+Ya sincronizamos el publisher de la inmobiliaria desde la
+integración de Homlity. Solicitamos habilitar/conectar este
+publisher para publicar propiedades vía API.
+
+  - Publisher external_id         : {external_id}
+  - Publisher ID devuelto por API : {publisher_id}
+  - Nombre de la inmobiliaria     : {agency_name}
+  - Request ID del sync           : {request_id}</pre></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="propiedades">
+    <span class="eyebrow">Anuncios</span>
+    <h2>Propiedades</h2>
+
+    <h3>Publicar</h3>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre>$response = $client-&gt;properties()-&gt;publish([
+    <span class="s">'referenceId'</span> =&gt; <span class="s">'CO-1001'</span>,
+    <span class="s">'publisher'</span>   =&gt; [<span class="s">'externalId'</span> =&gt; $inmobiliaria-&gt;proppit_external_id],
+    <span class="s">'contact'</span>     =&gt; [
+        <span class="s">'name'</span>  =&gt; <span class="s">'Ana Restrepo'</span>,
+        <span class="s">'email'</span> =&gt; <span class="s">'ana@inmobiliaria.com'</span>,
+        <span class="s">'phone'</span> =&gt; <span class="s">'+5712345678'</span>,
+    ],
+    <span class="s">'property'</span>    =&gt; [
+        <span class="s">'type'</span>     =&gt; <span class="s">'apartment'</span>,
+        <span class="s">'location'</span> =&gt; [
+            <span class="s">'countryCode'</span> =&gt; <span class="s">'CO'</span>,
+            <span class="s">'visibility'</span>  =&gt; <span class="s">'accurate'</span>,
+            <span class="s">'address'</span>     =&gt; <span class="s">'Calle 63 #11-20'</span>,
+            <span class="s">'coordinates'</span> =&gt; [<span class="s">'lat'</span> =&gt; 4.711, <span class="s">'long'</span> =&gt; -74.0721],
+        ],
+    ],
+    <span class="s">'operations'</span>  =&gt; [
+        [<span class="s">'type'</span> =&gt; <span class="s">'sell'</span>, <span class="s">'price'</span> =&gt; [<span class="s">'value'</span> =&gt; 450_000_000, <span class="s">'currency'</span> =&gt; <span class="s">'COP'</span>]],
+    ],
+    <span class="s">'title'</span>       =&gt; [<span class="s">'locale'</span> =&gt; <span class="s">'es-CO'</span>, <span class="s">'text'</span> =&gt; <span class="s">'Apartamento en Chapinero'</span>],
+    <span class="s">'description'</span> =&gt; [<span class="s">'locale'</span> =&gt; <span class="s">'es-CO'</span>, <span class="s">'text'</span> =&gt; <span class="s">'Vista panorámica, tercer piso.'</span>],
+    <span class="s">'floorArea'</span>   =&gt; [<span class="s">'value'</span> =&gt; 80.0, <span class="s">'unit'</span> =&gt; <span class="s">'sqm'</span>],
+    <span class="s">'bedrooms'</span>    =&gt; 3,
+    <span class="s">'bathrooms'</span>   =&gt; 2,
+    <span class="s">'stratum'</span>     =&gt; 4,
+    <span class="s">'multimedia'</span>  =&gt; [<span class="s">'pictures'</span> =&gt; [
+        [<span class="s">'url'</span> =&gt; <span class="s">'https://cdn.homlity.com/inmuebles/1001/1.jpg'</span>],
+        [<span class="s">'url'</span> =&gt; <span class="s">'https://cdn.homlity.com/inmuebles/1001/2.jpg'</span>],
+    ]],
+]);
+
+<span class="k">echo</span> $response-&gt;referenceId;  <span class="c">// CO-1001</span>
+<span class="k">echo</span> $response-&gt;status;       <span class="c">// published</span>
+$response-&gt;data;              <span class="c">// array crudo de la respuesta</span></pre></div>
+
+    <div class="note accent">
+      <p><strong>El <code>referenceId</code> es tuyo.</strong> Guárdalo en tu base de datos: es la única forma de actualizar o borrar el anuncio después. Convención sugerida: <code>CO-{inmueble_id}</code>.</p>
+    </div>
+
+    <h3>Actualizar, consultar, eliminar</h3>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre><span class="c">// PUT es un reemplazo COMPLETO: reenvía todos los campos requeridos.</span>
+$response = $client-&gt;properties()-&gt;update(<span class="s">'CO-1001'</span>, $payload);
+
+<span class="c">// Mono-inmobiliaria: usa PROPPIT_PUBLISHER_EXTERNAL_ID de la config</span>
+$response = $client-&gt;properties()-&gt;find(<span class="s">'CO-1001'</span>);
+
+<span class="c">// Multi-inmobiliaria: pasa el externalId de la agencia. Devuelve null si viene vacío.</span>
+$response = $client-&gt;properties()-&gt;findByExternalId(
+    $inmobiliaria-&gt;proppit_external_id,
+    <span class="s">'CO-1001'</span>,
+);
+
+$response = $client-&gt;properties()-&gt;delete(<span class="s">'CO-1001'</span>);
+<span class="k">echo</span> $response-&gt;status;  <span class="c">// deleted</span></pre></div>
+
+    <p><code>find()</code> y <code>delete()</code> lanzan <code>ValidationException</code> si no hay <code>publisher_external_id</code> configurado. En instalaciones multi-inmobiliaria, usa siempre <code>findByExternalId()</code>.</p>
+
+    <h3>Endpoints que usa cada método</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Método del SDK</th><th>HTTP</th><th>Path</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>properties()->publish()</code></td><td class="nw"><span class="pill ok">POST</span></td><td class="nw"><code>/proppit/{country}/ads</code></td></tr>
+        <tr><td class="nw"><code>properties()->update($ref)</code></td><td class="nw"><span class="pill warn">PUT</span></td><td class="nw"><code>/proppit/{country}/ads/{referenceId}</code></td></tr>
+        <tr><td class="nw"><code>properties()->find($ref)</code></td><td class="nw"><span class="pill mute">GET</span></td><td class="nw"><code>/proppit/{country}/ads/{referenceId}?externalId=</code></td></tr>
+        <tr><td class="nw"><code>properties()->delete($ref)</code></td><td class="nw"><span class="pill danger">DELETE</span></td><td class="nw"><code>/proppit/{country}/ads/{referenceId}?externalId=</code></td></tr>
+        <tr><td class="nw"><code>publishers()->create()</code></td><td class="nw"><span class="pill ok">POST</span></td><td class="nw"><code>/proppit/{country}/publishers</code></td></tr>
+        <tr><td class="nw"><code>publishers()->update($id)</code></td><td class="nw"><span class="pill warn">PUT</span></td><td class="nw"><code>/proppit/{country}/publishers/{id}</code></td></tr>
+        <tr><td class="nw"><code>publishers()->find($id)</code> · <code>status($id)</code></td><td class="nw"><span class="pill mute">GET</span></td><td class="nw"><code>/proppit/{country}/publishers/{id}</code></td></tr>
+      </tbody>
+    </table></div>
+    <p>El <code>referenceId</code> se codifica con <code>rawurlencode()</code>, así que es seguro usar barras, espacios o acentos.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="payload">
+    <span class="eyebrow">Referencia</span>
+    <h2>Payload de anuncio</h2>
+
+    <h3>Campos requeridos</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>referenceId</code></td><td class="nw">string</td><td>Único en tu sistema, no vacío</td></tr>
+        <tr><td class="nw"><code>publisher.externalId</code></td><td class="nw">string</td><td><code>externalId</code> de la inmobiliaria</td></tr>
+        <tr><td class="nw"><code>property.type</code></td><td class="nw">string</td><td><code>apartment</code>, <code>house</code>, <code>land</code>, <code>commercial</code>, <code>office</code>, <code>villa</code>…</td></tr>
+        <tr><td class="nw"><code>property.location.coordinates.lat</code></td><td class="nw">number</td><td>Latitud</td></tr>
+        <tr><td class="nw"><code>property.location.coordinates.long</code></td><td class="nw">number</td><td>Longitud</td></tr>
+        <tr><td class="nw"><code>operations[]</code></td><td class="nw">array</td><td>Mínimo un elemento</td></tr>
+        <tr><td class="nw"><code>operations[].type</code></td><td class="nw">enum</td><td><code>sell</code> · <code>rent</code></td></tr>
+        <tr><td class="nw"><code>operations[].price.value</code></td><td class="nw">number</td><td>Precio</td></tr>
+        <tr><td class="nw"><code>operations[].price.currency</code></td><td class="nw">enum</td><td>Ver monedas abajo</td></tr>
+        <tr><td class="nw"><code>title.locale</code> · <code>description.locale</code></td><td class="nw">enum</td><td>Ver locales abajo</td></tr>
+        <tr><td class="nw"><code>title.text</code> · <code>description.text</code></td><td class="nw">string</td><td>No vacío</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Campos opcionales más usados</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Campo</th><th>Tipo</th><th>Notas</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>contact.name</code> · <code>.email</code> · <code>.phone</code> · <code>.whatsapp</code></td><td class="nw">string</td><td>Contacto del anuncio</td></tr>
+        <tr><td class="nw"><code>property.location.countryCode</code></td><td class="nw">enum</td><td><code>CO</code>, <code>MX</code>, <code>AR</code>…</td></tr>
+        <tr><td class="nw"><code>property.location.visibility</code></td><td class="nw">enum</td><td><code>accurate</code> · <code>approximate</code></td></tr>
+        <tr><td class="nw"><code>property.location.address</code> · <code>.postcode</code></td><td class="nw">string</td><td></td></tr>
+        <tr><td class="nw"><code>property.location.nearbyLocations[]</code></td><td class="nw">string[]</td><td>Valores desde <code>GET /property-types</code></td></tr>
+        <tr><td class="nw"><code>property.location.geo[]</code></td><td class="nw">array</td><td><code>{name, level}</code></td></tr>
+        <tr><td class="nw"><code>property.communityFees</code></td><td class="nw">object</td><td><code>{value, currency}</code> — administración</td></tr>
+        <tr><td class="nw"><code>property.floor</code></td><td class="nw">string</td><td>Piso</td></tr>
+        <tr><td class="nw"><code>property.project.name</code></td><td class="nw">string</td><td>Debe coincidir <em>exactamente</em> con el proyecto en Proppit</td></tr>
+        <tr><td class="nw"><code>property.bankProperty</code></td><td class="nw">boolean</td><td>Solo MX</td></tr>
+        <tr><td class="nw"><code>multimedia.pictures[].url</code></td><td class="nw">URL</td><td>Content-type <code>image/*</code>, accesible públicamente</td></tr>
+        <tr><td class="nw"><code>multimedia.floorPlans[]</code> · <code>videos[]</code> · <code>virtualTours[]</code></td><td class="nw">URL</td><td></td></tr>
+        <tr><td class="nw"><code>totalArea</code> · <code>floorArea</code> · <code>usableArea</code></td><td class="nw">object</td><td><code>{value, unit:'sqm'}</code></td></tr>
+        <tr><td class="nw"><code>bedrooms</code> · <code>bathrooms</code> · <code>halfBathrooms</code> · <code>parkingSpaces</code></td><td class="nw">number ≥ 0</td><td></td></tr>
+        <tr><td class="nw"><code>stratum</code></td><td class="nw">number 1–7</td><td><strong>Solo Colombia.</strong> Validado por el SDK</td></tr>
+        <tr><td class="nw"><code>constructionYear</code></td><td class="nw">number</td><td>1500–2100</td></tr>
+        <tr><td class="nw"><code>condition</code> · <code>furnished</code></td><td class="nw">enum</td><td>Ver enums abajo</td></tr>
+        <tr><td class="nw"><code>isBoosted</code></td><td class="nw">boolean</td><td>Default <code>false</code>. Aumenta visibilidad hasta el límite del plan</td></tr>
+        <tr><td class="nw"><code>amenities[]</code> · <code>rules[]</code></td><td class="nw">string[]</td><td>Valores desde <code>GET /property-types</code></td></tr>
+        <tr><td class="nw"><code>acceptedPaymentMethods</code></td><td class="nw">enum</td><td>Solo MX</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Áreas: qué campo usar según el tipo</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Tipo de inmueble</th><th><code>floorArea</code></th><th><code>totalArea</code></th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>apartment</code> · <code>office</code></td><td>Área total</td><td>—</td></tr>
+        <tr><td class="nw"><code>house</code> · <code>villa</code> · <code>commercial</code> · <code>industrial unit</code></td><td>Área construida</td><td>Área de terreno</td></tr>
+        <tr><td class="nw"><code>land</code></td><td>—</td><td><strong>Obligatorio</strong> — área de terreno</td></tr>
+      </tbody>
+    </table></div>
+    <p>Unidad soportada: <code>sqm</code>. Enviar <code>m2</code> falla la validación local.</p>
+
+    <h3>Enums validados por el SDK</h3>
+    <h4>Moneda</h4>
+    <div class="chips"><span class="chip">AED</span><span class="chip">ARS</span><span class="chip">CLF</span><span class="chip">CLP</span><span class="chip">COP</span><span class="chip">EUR</span><span class="chip">IDR</span><span class="chip">MXN</span><span class="chip">PAB</span><span class="chip">PEN</span><span class="chip">PHP</span><span class="chip">THB</span><span class="chip">USD</span><span class="chip">VND</span></div>
+    <h4>Locale</h4>
+    <div class="chips"><span class="chip">es-AR</span><span class="chip">es-CL</span><span class="chip">es-CO</span><span class="chip">es-EC</span><span class="chip">es-ES</span><span class="chip">es-MX</span><span class="chip">es-PA</span><span class="chip">es-PE</span><span class="chip">en-PH</span><span class="chip">id-ID</span><span class="chip">th-TH</span><span class="chip">vi-VN</span></div>
+    <h4>Operación</h4>
+    <div class="chips"><span class="chip">sell</span><span class="chip">rent</span></div>
+    <h4>Condición</h4>
+    <div class="chips"><span class="chip">excellent</span><span class="chip">good</span><span class="chip">normal</span><span class="chip">to renew</span><span class="chip">second hand</span><span class="chip">ruin</span><span class="chip">semi-renovated</span><span class="chip">semi-new</span><span class="chip">in construction</span><span class="chip">new</span><span class="chip">renovated</span></div>
+    <h4>Amoblado · Visibilidad</h4>
+    <div class="chips"><span class="chip">fully</span><span class="chip">partly</span><span class="chip">unfurnished</span><span class="chip">accurate</span><span class="chip">approximate</span></div>
+
+    <h3>Qué valida el normalizador antes de salir a la red</h3>
+    <ul>
+      <li>Presencia de los seis campos requeridos y <code>referenceId</code> no vacío.</li>
+      <li><code>publisher.externalId</code> presente y no vacío.</li>
+      <li><code>property.type</code>, <code>property.location</code> y coordenadas numéricas.</li>
+      <li><code>operations</code> no vacío; <code>type</code>, <code>price.value</code> numérico y <code>currency</code> en el enum.</li>
+      <li><code>title</code> y <code>description</code> con <code>locale</code> válido y <code>text</code> no vacío.</li>
+      <li>Cada <code>multimedia.pictures[].url</code> como URL válida.</li>
+      <li>Áreas con <code>value</code> numérico y <code>unit</code> igual a <code>sqm</code>.</li>
+      <li><code>stratum</code> entre 1 y 7; <code>condition</code>, <code>furnished</code> y <code>visibility</code> contra sus enums.</li>
+      <li>Limpieza recursiva de <code>null</code> y strings vacíos antes de serializar.</li>
+    </ul>
+    <p>Cualquier fallo lanza <code>ValidationException</code> <strong>sin</strong> consumir una llamada HTTP.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="errores">
+    <span class="eyebrow">Producción</span>
+    <h2>Manejo de errores</h2>
+
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre><span class="k">use</span> Proppit\Exceptions\{ApiException, AuthException, ForbiddenException,
+    PublisherPermissionException, RateLimitException, ValidationException};
+
+<span class="k">try</span> {
+    $response = $client-&gt;properties()-&gt;publish($payload);
+
+} <span class="k">catch</span> (PublisherPermissionException $e) {
+    <span class="c">// 403 "Publisher could not publish" — el publisher NO está activado.</span>
+    <span class="c">// No son credenciales incorrectas. Ningún cambio de código lo resuelve.</span>
+    $e-&gt;requestId();        <span class="c">// Request ID de Proppit, para soporte</span>
+    $e-&gt;originalError();    <span class="c">// "Publisher could not publish"</span>
+    $e-&gt;rawResponse();      <span class="c">// JSON saneado del cuerpo del 403</span>
+    $e-&gt;operationalHint();  <span class="c">// guía legible para operadores</span>
+
+} <span class="k">catch</span> (ForbiddenException $e) {
+    <span class="c">// 403 genérico, no relacionado con la activación del publisher.</span>
+
+} <span class="k">catch</span> (ValidationException $e) {
+    <span class="c">// El payload no pasó la validación local — no hubo llamada HTTP.</span>
+
+} <span class="k">catch</span> (AuthException $e) {
+    <span class="c">// 401 o credenciales rechazadas por el endpoint /token.</span>
+
+} <span class="k">catch</span> (RateLimitException $e) {
+    $e-&gt;retryAfter;         <span class="c">// segundos, si Proppit envió Retry-After</span>
+
+} <span class="k">catch</span> (ApiException $e) {
+    <span class="c">// Cualquier otro error HTTP (400, 404, 5xx) o error de transporte.</span>
+    $e-&gt;statusCode; $e-&gt;method; $e-&gt;endpoint; $e-&gt;proppitErrorCode; $e-&gt;context();
+}</pre></div>
+
+    <div class="note warn">
+      <p><strong>El orden de los <code>catch</code> importa.</strong> Van de más específico a más general: si pones <code>ApiException</code> primero, nunca alcanzarás <code>PublisherPermissionException</code>.</p>
+    </div>
+
+    <h3>Jerarquía</h3>
+    <div class="code"><div class="code-head"><span class="code-lang">jerarquía</span><button class="copy" type="button">Copiar</button></div><pre>RuntimeException
+└── ProppitException                        <span class="c">← captura todo el SDK</span>
+    ├── ValidationException                <span class="c">validación local del payload</span>
+    ├── AuthException                      <span class="c">credenciales faltantes / 401</span>
+    └── ApiException                       <span class="c">statusCode, method, endpoint</span>
+        ├── RateLimitException             <span class="c">429 (+ retryAfter)</span>
+        ├── ForbiddenException             <span class="c">403 genérico</span>
+        └── PublisherPermissionException   <span class="c">403 "Publisher could not publish"</span>
+            └── PublisherNotReadyException <span class="c">+ publisherExternalId</span></pre></div>
+
+    <h3>Mapa de códigos HTTP</h3>
+    <div class="tw"><table>
+      <thead><tr><th>HTTP</th><th>Excepción</th><th>Reintenta</th><th>Qué hacer</th></tr></thead>
+      <tbody>
+        <tr><td class="nw num">400</td><td class="nw"><code>ApiException</code></td><td><span class="pill mute">no</span></td><td>Revisar el payload; leer <code>proppitErrorCode</code></td></tr>
+        <tr><td class="nw num">401</td><td class="nw"><code>AuthException</code></td><td><span class="pill mute">no</span></td><td>Verificar <code>CLIENT_ID</code> y <code>CLIENT_SECRET</code></td></tr>
+        <tr><td class="nw num">403 <em>publisher</em></td><td class="nw"><code>PublisherNotReadyException</code></td><td><span class="pill mute">no</span></td><td>Solicitar la activación del publisher a Proppit</td></tr>
+        <tr><td class="nw num">403 <em>otro</em></td><td class="nw"><code>ForbiddenException</code></td><td><span class="pill mute">no</span></td><td>Revisar permisos de la cuenta</td></tr>
+        <tr><td class="nw num">404</td><td class="nw"><code>ApiException</code></td><td><span class="pill mute">no</span></td><td>El recurso no existe <em>o</em> no está disponible para tus credenciales</td></tr>
+        <tr><td class="nw num">429</td><td class="nw"><code>RateLimitException</code></td><td><span class="pill ok">sí</span></td><td>Respetar <code>retryAfter</code>, encolar y reintentar</td></tr>
+        <tr><td class="nw num">500 · 502 · 503 · 504</td><td class="nw"><code>ApiException</code></td><td><span class="pill ok">sí</span></td><td>Automático; si persiste, reportar con el <code>requestId</code></td></tr>
+        <tr><td class="nw">Red</td><td class="nw"><code>ApiException</code> (<code>statusCode 0</code>)</td><td><span class="pill mute">no</span></td><td>Revisar conectividad, DNS o timeout</td></tr>
+      </tbody>
+    </table></div>
+    <p><code>$e->context()</code> trae <code>status</code>, <code>body</code> y <code>headers</code> <strong>ya saneados</strong>: es seguro loguearlo tal cual.</p>
+
+    <h3>Reaccionar al publisher no activado</h3>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre><span class="k">use</span> Proppit\Exceptions\PublisherNotReadyException;
+
+<span class="k">try</span> {
+    $client-&gt;properties()-&gt;publish($payload);
+} <span class="k">catch</span> (PublisherNotReadyException $e) {
+    $inmobiliaria-&gt;update([
+        <span class="s">'proppit_publisher_status'</span> =&gt; <span class="s">'cannot_publish'</span>,
+        <span class="s">'proppit_can_publish'</span>      =&gt; <span class="k">false</span>,
+        <span class="s">'proppit_last_error'</span>       =&gt; $e-&gt;getMessage(),
+        <span class="s">'proppit_last_request_id'</span>  =&gt; $e-&gt;requestId(),
+    ]);
+
+    Log::warning(<span class="s">'proppit_publisher_no_activado'</span>, [
+        <span class="s">'external_id'</span> =&gt; $e-&gt;publisherExternalId,
+        <span class="s">'request_id'</span>  =&gt; $e-&gt;proppitRequestId,
+    ]);
+}</pre></div>
+    <p><code>PropertyApi</code> reinyecta el <code>publisher.externalId</code> del payload en la excepción, así que <code>$e->publisherExternalId</code> te dice <em>qué</em> inmobiliaria está bloqueada.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="reintentos">
+    <span class="eyebrow">Producción</span>
+    <h2>Reintentos y límites</h2>
+
+    <div class="tw"><table>
+      <thead><tr><th>Condición</th><th>Comportamiento</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>429 Too Many Requests</code></td><td>Usa <code>Retry-After</code> si viene; si no, backoff exponencial con jitter</td></tr>
+        <tr><td class="nw"><code>5xx</code></td><td>Backoff exponencial con jitter</td></tr>
+        <tr><td class="nw"><code>4xx</code> salvo 429</td><td><strong>No reintenta</strong> — son errores del cliente</td></tr>
+        <tr><td class="nw">Error de transporte</td><td><strong>No reintenta</strong> — <code>ApiException</code> con <code>statusCode = 0</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <p>Fórmula del backoff: <code>retry_delay_ms × 2^(intento-1) + jitter(0–100 ms)</code>. Con los valores por defecto el peor caso son 4 intentos y ≈ 3,5 s de espera acumulada, más 4 × <code>timeout</code> en el peor escenario de red. Dimensiona el timeout de tu job en consecuencia.</p>
+
+    <div class="note">
+      <p>Proppit <strong>no documenta sus rate limits</strong>. El SDK maneja el 429 de forma defensiva, pero no paralelices agresivamente: publica desde una cola, un job por inmueble.</p>
+    </div>
+
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre><span class="k">public function</span> handle(ProppitClient $proppit): <span class="k">void</span>
+{
+    <span class="k">try</span> {
+        $proppit-&gt;properties()-&gt;publish($this-&gt;payload());
+    } <span class="k">catch</span> (RateLimitException $e) {
+        $this-&gt;release($e-&gt;retryAfter ?? 60);
+    } <span class="k">catch</span> (PublisherNotReadyException $e) {
+        $this-&gt;fail($e);   <span class="c">// no reintentar: requiere acción manual de Proppit</span>
+    }
+}</pre></div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="logging">
+    <span class="eyebrow">Observabilidad</span>
+    <h2>Logging estructurado</h2>
+    <p>Con <code>PROPPIT_ENABLE_STRUCTURED_LOGS=true</code>, cada request emite un evento <code>proppit_http</code>. En Laravel el logger PSR-3 de la app se inyecta solo; standalone, pásalo al construir <code>StructuredLogger</code>. Sin logger PSR-3 no se emite nada.</p>
+
+    <div class="tw"><table>
+      <thead><tr><th>Campo</th><th>Descripción</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>method</code> · <code>uri</code></td><td>Verbo y path relativo</td></tr>
+        <tr><td class="nw"><code>status_code</code></td><td>HTTP de la respuesta</td></tr>
+        <tr><td class="nw"><code>duration_ms</code></td><td>Duración medida en el cliente</td></tr>
+        <tr><td class="nw"><code>attempt</code></td><td>Número de intento (1 = el primero)</td></tr>
+        <tr><td class="nw"><code>request_id</code></td><td><code>x-request-id</code> de Proppit — <strong>guárdalo, soporte lo pide</strong></td></tr>
+        <tr><td class="nw"><code>error_code</code></td><td>Campo <code>error</code> del cuerpo, si viene</td></tr>
+        <tr><td class="nw"><code>headers</code></td><td>Headers enviados, ya saneados</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Redacción automática</h3>
+    <p><strong>Redactados por completo</strong> (<code>***</code>):</p>
+    <div class="chips"><span class="chip">authorization</span><span class="chip">client_secret</span><span class="chip">api_secret</span><span class="chip">api_password</span><span class="chip">password</span><span class="chip">token</span><span class="chip">access_token</span><span class="chip">refresh_token</span><span class="chip">bearer</span><span class="chip">signature</span><span class="chip">secret</span><span class="chip">email</span><span class="chip">phone</span><span class="chip">whatsapp</span></div>
+    <p><strong>Redactados parcialmente</strong> (4 primeros caracteres + <code>***</code>):</p>
+    <div class="chips"><span class="chip">client_id</span><span class="chip">api_key</span><span class="chip">api_user</span></div>
+
+    <p>La redacción es recursiva y también se aplica al <code>context()</code> de las excepciones y a <code>PublisherPermissionException::rawResponse()</code>. Puedes reutilizarla:</p>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre>StructuredLogger::sanitize($arrayConDatosSensibles);</pre></div>
+
+    <div class="note">
+      <p><code>email</code> y <code>phone</code> se redactan también en payloads salientes. Es deliberado — son PII. No te alarmes si no ves el contacto en los logs.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="extender">
+    <span class="eyebrow">Personalización</span>
+    <h2>Extender vía inyección de dependencias</h2>
+    <p>Todo lo público está detrás de una interfaz. Rebindea lo que necesites en tu <code>AppServiceProvider</code>.</p>
+
+    <div class="tw"><table>
+      <thead><tr><th>Interfaz</th><th>Binding por defecto</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>ProppitAuthenticatorInterface</code></td><td class="nw"><code>ClientCredentialsAuthenticator</code></td></tr>
+        <tr><td class="nw"><code>ProppitHttpClientInterface</code></td><td class="nw"><code>GuzzleProppitHttpClient</code></td></tr>
+        <tr><td class="nw"><code>PropertyApiInterface</code></td><td class="nw"><code>PropertyApi</code></td></tr>
+        <tr><td class="nw"><code>PublisherApiInterface</code></td><td class="nw"><code>PublisherApi</code></td></tr>
+        <tr><td class="nw"><code>PropertyPayloadMapperInterface</code></td><td class="nw"><code>PropertyPayloadNormalizer</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre><span class="c">// AppServiceProvider::register()</span>
+$this-&gt;app-&gt;bind(PropertyPayloadMapperInterface::class, InmuebleMapper::class);
+$this-&gt;app-&gt;bind(ProppitAuthenticatorInterface::class, TokenRedisAuthenticator::class);</pre></div>
+
+    <h3>Mapper propio, conservando la validación oficial</h3>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre><span class="k">final class</span> InmuebleMapper <span class="k">implements</span> PropertyPayloadMapperInterface
+{
+    <span class="k">public function</span> __construct(<span class="k">private readonly</span> PropertyPayloadNormalizer $base) {}
+
+    <span class="k">public function</span> normalize(PropertyPayload|<span class="k">array</span> $payload): <span class="k">array</span>
+    {
+        $payload = $this-&gt;aplicarReglasDeNegocio($payload);
+
+        <span class="k">return</span> $this-&gt;base-&gt;normalize($payload);  <span class="c">// conserva la validación del SDK</span>
+    }
+}</pre></div>
+
+    <div class="grid two">
+      <div class="card"><h5>Token en Redis</h5><p>Implementa <code>ProppitAuthenticatorInterface</code> si corres muchos procesos cortos y no quieres un <code>/token</code> por proceso.</p></div>
+      <div class="card"><h5>Cliente HTTP propio</h5><p>Implementa <code>ProppitHttpClientInterface</code> para instrumentar con OpenTelemetry, un circuit breaker o una caché de respuestas.</p></div>
+      <div class="card"><h5>Headers extra</h5><p>Más simple que un cliente propio: <code>'custom_headers' =&gt; ['X-Homlity-Trace' =&gt; $traceId]</code> en la config.</p></div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="testing">
+    <span class="eyebrow">Calidad</span>
+    <h2>Testing</h2>
+    <p>El SDK trae 192 tests unitarios y de integración que no tocan la red.</p>
+    <div class="code"><div class="code-head"><span class="code-lang">bash</span><button class="copy" type="button">Copiar</button></div><pre>composer install
+vendor/bin/phpunit</pre></div>
+
+    <h3>Mockear el SDK en tu aplicación</h3>
+    <p>Sustituye el cliente HTTP y no saldrá ni un byte a la red:</p>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre><span class="k">use</span> Proppit\Contracts\ProppitHttpClientInterface;
+<span class="k">use</span> Proppit\DTO\HttpResponse;
+
+$mock = $this-&gt;createMock(ProppitHttpClientInterface::class);
+$mock-&gt;method(<span class="s">'request'</span>)-&gt;willReturn(
+    <span class="k">new</span> HttpResponse(201, [], <span class="s">'{}'</span>, [<span class="s">'referenceId'</span> =&gt; <span class="s">'CO-1'</span>, <span class="s">'status'</span> =&gt; <span class="s">'published'</span>])
+);
+
+$this-&gt;app-&gt;bind(ProppitHttpClientInterface::class, <span class="k">fn</span> () =&gt; $mock);</pre></div>
+
+    <p>Para ejercitar la ruta del publisher no activado:</p>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre>$mock-&gt;method(<span class="s">'request'</span>)-&gt;willThrowException(
+    <span class="k">new</span> PublisherNotReadyException(<span class="s">'homlity_agency_1'</span>, <span class="s">'req-123'</span>, [])
+);</pre></div>
+
+    <p>O mockea la API completa cuando solo te interesa tu lógica de negocio:</p>
+    <div class="code"><div class="code-head"><span class="code-lang">php</span><button class="copy" type="button">Copiar</button></div><pre>$api = $this-&gt;createMock(PropertyApiInterface::class);
+$api-&gt;expects($this-&gt;once())-&gt;method(<span class="s">'publish'</span>);
+$this-&gt;app-&gt;bind(PropertyApiInterface::class, <span class="k">fn</span> () =&gt; $api);</pre></div>
+
+    <p>Si quieres ejercitar el SDK completo —retries, mapeo de errores— usa <code>GuzzleHttp\Handler\MockHandler</code> contra respuestas fabricadas.</p>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="troubleshooting">
+    <span class="eyebrow">Cuando algo falla</span>
+    <h2>Troubleshooting</h2>
+    <div class="tw"><table>
+      <thead><tr><th>Síntoma</th><th>Causa probable</th><th>Solución</th></tr></thead>
+      <tbody>
+        <tr><td><code>AuthException: Missing PROPPIT_CLIENT_ID</code></td><td>Config vacía o <code>.env</code> no cargado</td><td>Revisar <code>.env</code>; en Laravel, <code>php artisan config:clear</code></td></tr>
+        <tr><td><code>Proppit rejected the client credentials</code></td><td>Credenciales del entorno equivocado</td><td>Confirmar con Proppit; recordar que <code>client_id</code> viaja como <code>user</code></td></tr>
+        <tr><td><code>403 Publisher could not publish</code></td><td>Publisher no activado por Proppit</td><td>Solicitar la activación. <strong>No</strong> es un problema de credenciales ni de código</td></tr>
+        <tr><td><code>title.locale must be one of…</code></td><td>Locale mal formado (<code>es_CO</code>, <code>es</code>)</td><td>Usar <code>es-CO</code>, con guion</td></tr>
+        <tr><td><code>floorArea.unit must be one of: sqm</code></td><td>Unidad enviada como <code>m2</code></td><td>Usar <code>sqm</code></td></tr>
+        <tr><td><code>stratum must be between 1 and 7</code></td><td>Estrato fuera de rango o usado fuera de CO</td><td>Enviarlo solo en Colombia, valores 1–7</td></tr>
+        <tr><td><code>PROPPIT_PUBLISHER_EXTERNAL_ID is required</code></td><td><code>find()</code> o <code>delete()</code> sin la variable configurada</td><td>Usar <code>findByExternalId()</code> o definirla en la config</td></tr>
+        <tr><td><code>ApiException</code> con <code>statusCode = 0</code></td><td>Error de transporte: DNS, TLS, timeout</td><td>Revisar la salida a internet del servidor; subir <code>PROPPIT_TIMEOUT</code></td></tr>
+        <tr><td><code>404</code> al consultar un anuncio</td><td>No existe <em>o</em> no pertenece a tus credenciales</td><td>Verificar <code>referenceId</code> y <code>externalId</code>; Proppit no distingue ambos casos</td></tr>
+        <tr><td>Composer no encuentra versiones</td><td>Aún no hay tag estable en Packagist</td><td>Usar <code>:dev-main</code> o el repositorio VCS</td></tr>
+        <tr><td>No aparece nada en los logs</td><td>Logs desactivados o sin logger PSR-3</td><td>Activar la variable; standalone, pasar el logger al <code>StructuredLogger</code></td></tr>
+        <tr><td>El anuncio no se ve en Proppit</td><td>Imágenes no accesibles o publisher recién activado</td><td>URLs públicas con content-type <code>image/*</code>; dar tiempo al ingester</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="note accent">
+      <p>Cuando escribas a soporte de Proppit, <strong>incluye siempre el <code>requestId</code></strong>. Lo tienes en los logs, en <code>$e->requestId()</code> y en <code>$response->requestId</code>.</p>
+    </div>
+  </section>
+
+  <!-- ══════════════════════════════════════════════ -->
+  <section id="recursos">
+    <span class="eyebrow">Referencias</span>
+    <h2>Recursos y soporte</h2>
+
+    <div class="tw"><table>
+      <thead><tr><th>Recurso</th><th>Enlace</th></tr></thead>
+      <tbody>
+        <tr><td>Homlity</td><td><a href="https://homlity.com/">homlity.com</a></td></tr>
+        <tr><td>Portal de desarrolladores</td><td><a href="https://homlity.com/desarrolladores/">homlity.com/desarrolladores</a></td></tr>
+        <tr><td>Repositorio</td><td><a href="https://github.com/homlity/sdk-propit">github.com/homlity/sdk-propit</a></td></tr>
+        <tr><td>Packagist</td><td><a href="https://packagist.org/packages/homlity/sdk-proppit">packagist.org/packages/homlity/sdk-proppit</a></td></tr>
+        <tr><td>Swagger de Proppit</td><td><a href="https://real-time.proppit.com/api/v2/docs">real-time.proppit.com/api/v2/docs</a></td></tr>
+        <tr><td>OpenAPI de Proppit</td><td><a href="https://real-time.proppit.com/api/v2/docs/openapi.yaml">openapi.yaml</a></td></tr>
+        <tr><td>Soporte del ingester</td><td><code>ingester@lifullconnect.com</code></td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Documentación en el repositorio</h3>
+    <div class="tw"><table>
+      <thead><tr><th>Documento</th><th>Contenido</th></tr></thead>
+      <tbody>
+        <tr><td class="nw"><code>README.md</code></td><td>Guía completa de uso del SDK</td></tr>
+        <tr><td class="nw"><code>docs/publisher-integration.md</code></td><td>Flujo de publishers, estados y plantilla de activación</td></tr>
+        <tr><td class="nw"><code>docs/proppit-initial-sync.md</code></td><td>Checklist de sincronización inicial y depuración del inventario previo</td></tr>
+        <tr><td class="nw"><code>docs/proppit-api-analysis.md</code></td><td>Análisis técnico de la API, schemas y enums</td></tr>
+        <tr><td class="nw"><code>docs/migracion-fincaraiz-a-propit.md</code></td><td>Migración desde el SDK de Finca Raíz</td></tr>
+        <tr><td class="nw"><code>examples/</code></td><td>Cuatro scripts ejecutables de punta a punta</td></tr>
+      </tbody>
+    </table></div>
+
+    <h3>Contribuir</h3>
+    <ol class="plain">
+      <li>Crea una rama desde <code>main</code>.</li>
+      <li>Añade tests en <code>tests/Unit</code> o <code>tests/Integration</code>.</li>
+      <li>Deja <code>vendor/bin/phpunit</code> en verde.</li>
+      <li>Abre un PR describiendo el cambio y su impacto en el payload o en la API pública.</li>
+    </ol>
+    <p>Convenciones del código: <code>declare(strict_types=1)</code>, clases <code>final</code> salvo que se diseñen para extenderse, constructor property promotion, propiedades <code>readonly</code> y todo lo público detrás de una interfaz en <code>src/Contracts/</code>.</p>
+
+    <h3>Seguridad</h3>
+    <ul>
+      <li>Nunca commitear credenciales: <code>.env</code> o un gestor de secretos.</li>
+      <li>Nunca construir logs propios con <code>client_secret</code> ni tokens.</li>
+      <li>Usar <code>$config->redacted()</code> para volcar el estado de la configuración.</li>
+      <li>Reportar vulnerabilidades de forma privada a través del <a href="https://homlity.com/desarrolladores/">portal de desarrolladores</a>.</li>
+    </ul>
+  </section>
+
+  </main>
+
+  <footer>
+    <a class="logo-plate" href="https://homlity.com/"><img src="data:image/webp;base64,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" alt="Homlity"></a>
+    <p>Hecho por <a href="https://homlity.com/">Homlity</a> · <a href="https://homlity.com/desarrolladores/">Portal de desarrolladores</a><br>SDK <code>homlity/sdk-proppit</code> para la Real-Time API v2 de Proppit.</p>
+  </footer>
+
+</div>
+
+<script>
+(function(){
+  // Copiar código
+  document.querySelectorAll('.copy').forEach(function(btn){
+    btn.addEventListener('click', function(){
+      var pre = btn.closest('.code').querySelector('pre');
+      var text = pre.innerText;
+      var done = function(){
+        btn.textContent = 'Copiado';
+        btn.classList.add('done');
+        setTimeout(function(){ btn.textContent = 'Copiar'; btn.classList.remove('done'); }, 1600);
+      };
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(text).then(done, function(){ btn.textContent = 'Selecciona y copia'; });
+        } else {
+          var ta = document.createElement('textarea');
+          ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+          document.body.appendChild(ta); ta.select();
+          document.execCommand('copy'); document.body.removeChild(ta);
+          done();
+        }
+      } catch (e) {
+        btn.textContent = 'Selecciona y copia';
+      }
+    });
+  });
+
+  // Scroll-spy del rail
+  var links = Array.prototype.slice.call(document.querySelectorAll('.rail a'));
+  var map = {};
+  links.forEach(function(a){ map[a.getAttribute('href').slice(1)] = a; });
+  var sections = Array.prototype.slice.call(document.querySelectorAll('main section'));
+
+  if ('IntersectionObserver' in window) {
+    var visible = {};
+    var io = new IntersectionObserver(function(entries){
+      entries.forEach(function(en){ visible[en.target.id] = en.isIntersecting; });
+      var current = null;
+      for (var i = 0; i < sections.length; i++) {
+        if (visible[sections[i].id]) { current = sections[i].id; break; }
+      }
+      if (current) {
+        links.forEach(function(a){ a.classList.remove('on'); });
+        if (map[current]) map[current].classList.add('on');
+      }
+    }, { rootMargin: '-10% 0px -70% 0px', threshold: 0 });
+    sections.forEach(function(s){ io.observe(s); });
+  }
+})();
+</script>
+</body>
+</html>

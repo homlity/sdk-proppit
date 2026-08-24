@@ -2,9 +2,9 @@
 
 declare(strict_types=1);
 
-namespace Propit\Exceptions;
+namespace Proppit\Exceptions;
 
-class ApiException extends PropitException
+class ApiException extends ProppitException
 {
     public function __construct(
         string $message,

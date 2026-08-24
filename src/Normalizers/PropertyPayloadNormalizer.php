@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Propit\Normalizers;
+namespace Proppit\Normalizers;
 
-use Propit\Contracts\PropertyPayloadMapperInterface;
-use Propit\DTO\PropertyPayload;
-use Propit\Exceptions\ValidationException;
+use Proppit\Contracts\PropertyPayloadMapperInterface;
+use Proppit\DTO\PropertyPayload;
+use Proppit\Exceptions\ValidationException;
 
 /**
  * Validates and normalizes an Ad payload before it is sent to the Proppit API.

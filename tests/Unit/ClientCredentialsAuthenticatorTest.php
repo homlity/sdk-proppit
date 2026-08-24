@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Propit\Tests\Unit;
+namespace Proppit\Tests\Unit;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\ConnectException;
 use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
-use Propit\Auth\ClientCredentialsAuthenticator;
-use Propit\Config\PropitConfig;
-use Propit\Exceptions\AuthException;
+use Proppit\Auth\ClientCredentialsAuthenticator;
+use Proppit\Config\ProppitConfig;
+use Proppit\Exceptions\AuthException;
 
 final class ClientCredentialsAuthenticatorTest extends TestCase
 {
-    private PropitConfig $config;
+    private ProppitConfig $config;
 
     protected function setUp(): void
     {
-        $this->config = PropitConfig::fromArray([
+        $this->config = ProppitConfig::fromArray([
             'base_url'      => 'https://real-time.proppit.com/api/v2',
             'client_id'     => 'homlity-client-id',
             'client_secret' => 'super-secret',
@@ -170,11 +170,11 @@ final class ClientCredentialsAuthenticatorTest extends TestCase
         $auth->authenticate();
     }
 
-    // ── PropitConfig loads credentials from config array ─────────────────────
+    // ── ProppitConfig loads credentials from config array ─────────────────────
 
-    public function test_PropitConfig_loads_client_id_and_client_secret(): void
+    public function test_ProppitConfig_loads_client_id_and_client_secret(): void
     {
-        $cfg = PropitConfig::fromArray([
+        $cfg = ProppitConfig::fromArray([
             'base_url'      => 'https://real-time.proppit.com/api/v2',
             'client_id'     => 'id-123',
             'client_secret' => 'secret-456',
@@ -184,9 +184,9 @@ final class ClientCredentialsAuthenticatorTest extends TestCase
         self::assertSame('secret-456', $cfg->clientSecret());
     }
 
-    public function test_PropitConfig_loads_legacy_api_user_as_client_id(): void
+    public function test_ProppitConfig_loads_legacy_api_user_as_client_id(): void
     {
-        $cfg = PropitConfig::fromArray([
+        $cfg = ProppitConfig::fromArray([
             'base_url'    => 'https://real-time.proppit.com/api/v2',
             'api_user'    => 'legacy-user',
             'api_password' => 'legacy-pass',
@@ -196,23 +196,23 @@ final class ClientCredentialsAuthenticatorTest extends TestCase
         self::assertSame('legacy-pass', $cfg->clientSecret());
     }
 
-    public function test_PropitConfig_throws_AuthException_when_client_id_missing(): void
+    public function test_ProppitConfig_throws_AuthException_when_client_id_missing(): void
     {
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessageMatches('/PROPIT_CLIENT_ID/');
+        $this->expectExceptionMessageMatches('/PROPPIT_CLIENT_ID/');
 
-        PropitConfig::fromArray([
+        ProppitConfig::fromArray([
             'base_url'      => 'https://real-time.proppit.com/api/v2',
             'client_secret' => 'secret',
         ]);
     }
 
-    public function test_PropitConfig_throws_AuthException_when_client_secret_missing(): void
+    public function test_ProppitConfig_throws_AuthException_when_client_secret_missing(): void
     {
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessageMatches('/PROPIT_CLIENT_SECRET/');
+        $this->expectExceptionMessageMatches('/PROPPIT_CLIENT_SECRET/');
 
-        PropitConfig::fromArray([
+        ProppitConfig::fromArray([
             'base_url'  => 'https://real-time.proppit.com/api/v2',
             'client_id' => 'id',
         ]);

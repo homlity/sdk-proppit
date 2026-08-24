@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Propit\Contracts;
+namespace Proppit\Contracts;
 
-use Propit\Exceptions\AuthException;
+use Proppit\Exceptions\AuthException;
 
-interface PropitAuthenticatorInterface
+interface ProppitAuthenticatorInterface
 {
     /** @throws AuthException */
     public function authenticate(array $headers = []): array;

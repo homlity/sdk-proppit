@@ -2,24 +2,24 @@
 
 declare(strict_types=1);
 
-namespace Propit\Tests\Integration;
+namespace Proppit\Tests\Integration;
 
 use Illuminate\Config\Repository;
 use Illuminate\Container\Container;
 use PHPUnit\Framework\TestCase;
-use Propit\Api\PropertyApi;
-use Propit\Api\PublisherApi;
-use Propit\Auth\ClientCredentialsAuthenticator;
-use Propit\Config\PropitConfig;
-use Propit\Contracts\PropertyApiInterface;
-use Propit\Contracts\PropertyPayloadMapperInterface;
-use Propit\Contracts\PropitAuthenticatorInterface;
-use Propit\Contracts\PropitHttpClientInterface;
-use Propit\Contracts\PublisherApiInterface;
-use Propit\Http\GuzzlePropitHttpClient;
-use Propit\Laravel\PropitServiceProvider;
-use Propit\Normalizers\PropertyPayloadNormalizer;
-use Propit\PropitClient;
+use Proppit\Api\PropertyApi;
+use Proppit\Api\PublisherApi;
+use Proppit\Auth\ClientCredentialsAuthenticator;
+use Proppit\Config\ProppitConfig;
+use Proppit\Contracts\PropertyApiInterface;
+use Proppit\Contracts\PropertyPayloadMapperInterface;
+use Proppit\Contracts\ProppitAuthenticatorInterface;
+use Proppit\Contracts\ProppitHttpClientInterface;
+use Proppit\Contracts\PublisherApiInterface;
+use Proppit\Http\GuzzleProppitHttpClient;
+use Proppit\Laravel\ProppitServiceProvider;
+use Proppit\Normalizers\PropertyPayloadNormalizer;
+use Proppit\ProppitClient;
 
 final class ContainerBindingTest extends TestCase
 {
@@ -28,7 +28,7 @@ final class ContainerBindingTest extends TestCase
     protected function setUp(): void
     {
         $this->app = new Container();
-        $this->app->instance('config', new Repository(['propit' => [
+        $this->app->instance('config', new Repository(['proppit' => [
             'base_url'               => 'https://real-time.proppit.com/api/v2',
             'client_id'              => 'test-client-id',
             'client_secret'          => 'test-client-secret',
@@ -39,15 +39,15 @@ final class ContainerBindingTest extends TestCase
             'enable_structured_logs' => false,
         ]]));
 
-        $provider = new PropitServiceProvider($this->app);
+        $provider = new ProppitServiceProvider($this->app);
         $provider->register();
     }
 
     // ── Contract resolution ──────────────────────────────────────────────────
 
-    public function test_PropitClient_resolves(): void
+    public function test_ProppitClient_resolves(): void
     {
-        self::assertInstanceOf(PropitClient::class, $this->app->make(PropitClient::class));
+        self::assertInstanceOf(ProppitClient::class, $this->app->make(ProppitClient::class));
     }
 
     public function test_PropertyApiInterface_resolves(): void
@@ -60,14 +60,14 @@ final class ContainerBindingTest extends TestCase
         self::assertInstanceOf(PublisherApiInterface::class, $this->app->make(PublisherApiInterface::class));
     }
 
-    public function test_PropitAuthenticatorInterface_resolves(): void
+    public function test_ProppitAuthenticatorInterface_resolves(): void
     {
-        self::assertInstanceOf(PropitAuthenticatorInterface::class, $this->app->make(PropitAuthenticatorInterface::class));
+        self::assertInstanceOf(ProppitAuthenticatorInterface::class, $this->app->make(ProppitAuthenticatorInterface::class));
     }
 
-    public function test_PropitHttpClientInterface_resolves(): void
+    public function test_ProppitHttpClientInterface_resolves(): void
     {
-        self::assertInstanceOf(PropitHttpClientInterface::class, $this->app->make(PropitHttpClientInterface::class));
+        self::assertInstanceOf(ProppitHttpClientInterface::class, $this->app->make(ProppitHttpClientInterface::class));
     }
 
     public function test_PropertyPayloadMapperInterface_resolves(): void
@@ -75,9 +75,9 @@ final class ContainerBindingTest extends TestCase
         self::assertInstanceOf(PropertyPayloadMapperInterface::class, $this->app->make(PropertyPayloadMapperInterface::class));
     }
 
-    public function test_PropitConfig_resolves(): void
+    public function test_ProppitConfig_resolves(): void
     {
-        self::assertInstanceOf(PropitConfig::class, $this->app->make(PropitConfig::class));
+        self::assertInstanceOf(ProppitConfig::class, $this->app->make(ProppitConfig::class));
     }
 
     // ── Concrete implementations ─────────────────────────────────────────────
@@ -92,14 +92,14 @@ final class ContainerBindingTest extends TestCase
         self::assertInstanceOf(PublisherApi::class, $this->app->make(PublisherApiInterface::class));
     }
 
-    public function test_PropitAuthenticatorInterface_resolves_to_ClientCredentialsAuthenticator(): void
+    public function test_ProppitAuthenticatorInterface_resolves_to_ClientCredentialsAuthenticator(): void
     {
-        self::assertInstanceOf(ClientCredentialsAuthenticator::class, $this->app->make(PropitAuthenticatorInterface::class));
+        self::assertInstanceOf(ClientCredentialsAuthenticator::class, $this->app->make(ProppitAuthenticatorInterface::class));
     }
 
-    public function test_PropitHttpClientInterface_resolves_to_GuzzlePropitHttpClient(): void
+    public function test_ProppitHttpClientInterface_resolves_to_GuzzleProppitHttpClient(): void
     {
-        self::assertInstanceOf(GuzzlePropitHttpClient::class, $this->app->make(PropitHttpClientInterface::class));
+        self::assertInstanceOf(GuzzleProppitHttpClient::class, $this->app->make(ProppitHttpClientInterface::class));
     }
 
     public function test_PropertyPayloadMapperInterface_resolves_to_PropertyPayloadNormalizer(): void
@@ -109,66 +109,66 @@ final class ContainerBindingTest extends TestCase
 
     // ── Singleton behaviour ──────────────────────────────────────────────────
 
-    public function test_PropitClient_is_singleton(): void
+    public function test_ProppitClient_is_singleton(): void
     {
-        $a = $this->app->make(PropitClient::class);
-        $b = $this->app->make(PropitClient::class);
+        $a = $this->app->make(ProppitClient::class);
+        $b = $this->app->make(ProppitClient::class);
         self::assertSame($a, $b);
     }
 
-    public function test_PropitConfig_is_singleton(): void
+    public function test_ProppitConfig_is_singleton(): void
     {
-        $a = $this->app->make(PropitConfig::class);
-        $b = $this->app->make(PropitConfig::class);
+        $a = $this->app->make(ProppitConfig::class);
+        $b = $this->app->make(ProppitConfig::class);
         self::assertSame($a, $b);
     }
 
-    // ── PropitClient exposes both APIs ───────────────────────────────────────
+    // ── ProppitClient exposes both APIs ───────────────────────────────────────
 
-    public function test_PropitClient_exposes_properties(): void
+    public function test_ProppitClient_exposes_properties(): void
     {
-        $client = $this->app->make(PropitClient::class);
+        $client = $this->app->make(ProppitClient::class);
         self::assertInstanceOf(PropertyApiInterface::class, $client->properties());
     }
 
-    public function test_PropitClient_exposes_publishers(): void
+    public function test_ProppitClient_exposes_publishers(): void
     {
-        $client = $this->app->make(PropitClient::class);
+        $client = $this->app->make(ProppitClient::class);
         self::assertInstanceOf(PublisherApiInterface::class, $client->publishers());
     }
 
     // ── Config values ────────────────────────────────────────────────────────
 
-    public function test_PropitConfig_reads_country_from_laravel_config(): void
+    public function test_ProppitConfig_reads_country_from_laravel_config(): void
     {
-        $config = $this->app->make(PropitConfig::class);
+        $config = $this->app->make(ProppitConfig::class);
         self::assertSame('CO', $config->country());
     }
 
-    public function test_PropitConfig_reads_base_url_from_laravel_config(): void
+    public function test_ProppitConfig_reads_base_url_from_laravel_config(): void
     {
-        $config = $this->app->make(PropitConfig::class);
+        $config = $this->app->make(ProppitConfig::class);
         self::assertSame('https://real-time.proppit.com/api/v2', $config->baseUrl());
     }
 
-    public function test_PropitConfig_reads_client_id(): void
+    public function test_ProppitConfig_reads_client_id(): void
     {
-        $config = $this->app->make(PropitConfig::class);
+        $config = $this->app->make(ProppitConfig::class);
         self::assertSame('test-client-id', $config->clientId());
     }
 
-    public function test_PropitConfig_does_not_expose_client_secret_in_redacted(): void
+    public function test_ProppitConfig_does_not_expose_client_secret_in_redacted(): void
     {
-        $config   = $this->app->make(PropitConfig::class);
+        $config   = $this->app->make(ProppitConfig::class);
         $redacted = $config->redacted();
 
         self::assertSame('***', $redacted['client_secret']);
         self::assertStringNotContainsString('test-client-secret', serialize($redacted));
     }
 
-    public function test_PropitConfig_shows_partial_client_id_in_redacted(): void
+    public function test_ProppitConfig_shows_partial_client_id_in_redacted(): void
     {
-        $config   = $this->app->make(PropitConfig::class);
+        $config   = $this->app->make(ProppitConfig::class);
         $redacted = $config->redacted();
 
         self::assertStringContainsString('***', $redacted['client_id']);
@@ -180,7 +180,7 @@ final class ContainerBindingTest extends TestCase
     public function test_PropertyPayloadMapperInterface_can_be_swapped(): void
     {
         $custom = new class implements PropertyPayloadMapperInterface {
-            public function normalize(\Propit\DTO\PropertyPayload|array $_payload): array
+            public function normalize(\Proppit\DTO\PropertyPayload|array $_payload): array
             {
                 return ['custom' => true];
             }
@@ -195,29 +195,29 @@ final class ContainerBindingTest extends TestCase
     public function test_PublisherApiInterface_can_be_swapped(): void
     {
         $custom = new class implements PublisherApiInterface {
-            public function create(\Propit\DTO\PublisherPayload $_p): \Propit\DTO\PublisherResponse
+            public function create(\Proppit\DTO\PublisherPayload $_p): \Proppit\DTO\PublisherResponse
             {
-                return \Propit\DTO\PublisherResponse::fromArray(['id' => 'custom']);
+                return \Proppit\DTO\PublisherResponse::fromArray(['id' => 'custom']);
             }
 
-            public function update(string $_id, \Propit\DTO\PublisherPayload $_p): \Propit\DTO\PublisherResponse
+            public function update(string $_id, \Proppit\DTO\PublisherPayload $_p): \Proppit\DTO\PublisherResponse
             {
-                return \Propit\DTO\PublisherResponse::fromArray(['id' => 'custom']);
+                return \Proppit\DTO\PublisherResponse::fromArray(['id' => 'custom']);
             }
 
-            public function find(string $_id): ?\Propit\DTO\PublisherResponse
+            public function find(string $_id): ?\Proppit\DTO\PublisherResponse
             {
                 return null;
             }
 
-            public function createOrUpdate(\Propit\DTO\PublisherPayload $_p): \Propit\DTO\PublisherResponse
+            public function createOrUpdate(\Proppit\DTO\PublisherPayload $_p): \Proppit\DTO\PublisherResponse
             {
-                return \Propit\DTO\PublisherResponse::fromArray(['id' => 'custom']);
+                return \Proppit\DTO\PublisherResponse::fromArray(['id' => 'custom']);
             }
 
-            public function status(string $_id): \Propit\DTO\PublisherResponse
+            public function status(string $_id): \Proppit\DTO\PublisherResponse
             {
-                return \Propit\DTO\PublisherResponse::fromArray(['id' => 'custom']);
+                return \Proppit\DTO\PublisherResponse::fromArray(['id' => 'custom']);
             }
         };
 
@@ -231,7 +231,7 @@ final class ContainerBindingTest extends TestCase
 
     public function test_StructuredLogger_sanitize_redacts_client_secret(): void
     {
-        $sanitized = \Propit\Support\StructuredLogger::sanitize([
+        $sanitized = \Proppit\Support\StructuredLogger::sanitize([
             'client_secret' => 'my-secret',
             'client_id'     => 'my-id',
             'Authorization' => 'Bearer tok',
@@ -245,7 +245,7 @@ final class ContainerBindingTest extends TestCase
 
     public function test_StructuredLogger_sanitize_redacts_access_token(): void
     {
-        $sanitized = \Propit\Support\StructuredLogger::sanitize([
+        $sanitized = \Proppit\Support\StructuredLogger::sanitize([
             'access_token'  => 'abc123',
             'refresh_token' => 'xyz789',
         ]);

@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Propit\Tests\Unit;
+namespace Proppit\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Propit\Exceptions\ValidationException;
-use Propit\Normalizers\PropertyPayloadNormalizer;
+use Proppit\Exceptions\ValidationException;
+use Proppit\Normalizers\PropertyPayloadNormalizer;
 
 final class PropertyPayloadNormalizerTest extends TestCase
 {

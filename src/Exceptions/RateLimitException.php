@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Propit\Exceptions;
+namespace Proppit\Exceptions;
 
 final class RateLimitException extends ApiException
 {

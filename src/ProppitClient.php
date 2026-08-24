@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Propit;
+namespace Proppit;
 
-use Propit\Contracts\PropertyApiInterface;
-use Propit\Contracts\PublisherApiInterface;
+use Proppit\Contracts\PropertyApiInterface;
+use Proppit\Contracts\PublisherApiInterface;
 
-final class PropitClient
+final class ProppitClient
 {
     public function __construct(
         private readonly PropertyApiInterface $properties,

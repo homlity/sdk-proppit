@@ -2,11 +2,11 @@
 
 declare(strict_types=1);
 
-namespace Propit\Contracts;
+namespace Proppit\Contracts;
 
-use Propit\DTO\PublisherPayload;
-use Propit\DTO\PublisherResponse;
-use Propit\Exceptions\PropitException;
+use Proppit\DTO\PublisherPayload;
+use Proppit\DTO\PublisherResponse;
+use Proppit\Exceptions\ProppitException;
 
 interface PublisherApiInterface
 {
@@ -14,7 +14,7 @@ interface PublisherApiInterface
      * Creates a new publisher (agency) in Proppit.
      * POST /proppit/{country}/publishers
      *
-     * @throws PropitException
+     * @throws ProppitException
      */
     public function create(PublisherPayload $payload): PublisherResponse;
 
@@ -22,7 +22,7 @@ interface PublisherApiInterface
      * Updates an existing publisher by its id (external ID).
      * PUT /proppit/{country}/publishers/{id}
      *
-     * @throws PropitException
+     * @throws ProppitException
      */
     public function update(string $publisherId, PublisherPayload $payload): PublisherResponse;
 
@@ -31,7 +31,7 @@ interface PublisherApiInterface
      * GET /proppit/{country}/publishers/{id}
      * Returns null if not found (404).
      *
-     * @throws PropitException
+     * @throws ProppitException
      */
     public function find(string $publisherId): ?PublisherResponse;
 
@@ -39,7 +39,7 @@ interface PublisherApiInterface
      * Creates the publisher if it does not exist, updates it if it does.
      * Uses find() internally to decide between create() and update().
      *
-     * @throws PropitException
+     * @throws ProppitException
      */
     public function createOrUpdate(PublisherPayload $payload): PublisherResponse;
 
@@ -53,7 +53,7 @@ interface PublisherApiInterface
      * Throws ApiException(404) if the publisher does not exist — run
      * createOrUpdate() first.
      *
-     * @throws PropitException
+     * @throws ProppitException
      */
     public function status(string $publisherId): PublisherResponse;
 }

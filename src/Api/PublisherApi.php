@@ -2,22 +2,22 @@
 
 declare(strict_types=1);
 
-namespace Propit\Api;
+namespace Proppit\Api;
 
-use Propit\Config\PropitConfig;
-use Propit\Contracts\PublisherApiInterface;
-use Propit\Contracts\PropitHttpClientInterface;
-use Propit\DTO\PublisherPayload;
-use Propit\DTO\PublisherResponse;
-use Propit\Exceptions\ApiException;
-use Propit\Normalizers\PublisherPayloadNormalizer;
+use Proppit\Config\ProppitConfig;
+use Proppit\Contracts\PublisherApiInterface;
+use Proppit\Contracts\ProppitHttpClientInterface;
+use Proppit\DTO\PublisherPayload;
+use Proppit\DTO\PublisherResponse;
+use Proppit\Exceptions\ApiException;
+use Proppit\Normalizers\PublisherPayloadNormalizer;
 
 final class PublisherApi implements PublisherApiInterface
 {
     public function __construct(
-        private readonly PropitHttpClientInterface $http,
+        private readonly ProppitHttpClientInterface $http,
         private readonly PublisherPayloadNormalizer $normalizer,
-        private readonly PropitConfig $config,
+        private readonly ProppitConfig $config,
     ) {
     }
 

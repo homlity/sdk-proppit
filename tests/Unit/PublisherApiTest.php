@@ -2,28 +2,28 @@
 
 declare(strict_types=1);
 
-namespace Propit\Tests\Unit;
+namespace Proppit\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Propit\Api\PublisherApi;
-use Propit\Config\PropitConfig;
-use Propit\Contracts\PropitHttpClientInterface;
-use Propit\DTO\HttpResponse;
-use Propit\DTO\PublisherPayload;
-use Propit\DTO\PublisherResponse;
-use Propit\Exceptions\ApiException;
-use Propit\Exceptions\AuthException;
-use Propit\Exceptions\ValidationException;
-use Propit\Normalizers\PublisherPayloadNormalizer;
+use Proppit\Api\PublisherApi;
+use Proppit\Config\ProppitConfig;
+use Proppit\Contracts\ProppitHttpClientInterface;
+use Proppit\DTO\HttpResponse;
+use Proppit\DTO\PublisherPayload;
+use Proppit\DTO\PublisherResponse;
+use Proppit\Exceptions\ApiException;
+use Proppit\Exceptions\AuthException;
+use Proppit\Exceptions\ValidationException;
+use Proppit\Normalizers\PublisherPayloadNormalizer;
 
 final class PublisherApiTest extends TestCase
 {
-    private PropitConfig $config;
+    private ProppitConfig $config;
     private PublisherPayloadNormalizer $normalizer;
 
     protected function setUp(): void
     {
-        $this->config = PropitConfig::fromArray([
+        $this->config = ProppitConfig::fromArray([
             'base_url'      => 'https://real-time.proppit.com/api/v2',
             'client_id'     => 'id',
             'client_secret' => 'secret',
@@ -57,9 +57,9 @@ final class PublisherApiTest extends TestCase
 
     // ── HTTP fakes ────────────────────────────────────────────────────────────
 
-    private function fakeHttp(int $status, array $json = []): PropitHttpClientInterface
+    private function fakeHttp(int $status, array $json = []): ProppitHttpClientInterface
     {
-        return new class($status, $json) implements PropitHttpClientInterface {
+        return new class($status, $json) implements ProppitHttpClientInterface {
             public function __construct(private int $status, private array $json) {}
 
             public function request(string $method, string $uri, array $headers = [], array $query = [], array $json = []): HttpResponse
@@ -69,9 +69,9 @@ final class PublisherApiTest extends TestCase
         };
     }
 
-    private function capturingHttp(int $status, array $json, array &$captured): PropitHttpClientInterface
+    private function capturingHttp(int $status, array $json, array &$captured): ProppitHttpClientInterface
     {
-        return new class($status, $json, $captured) implements PropitHttpClientInterface {
+        return new class($status, $json, $captured) implements ProppitHttpClientInterface {
             public function __construct(
                 private int $status,
                 private array $json,
@@ -86,9 +86,9 @@ final class PublisherApiTest extends TestCase
         };
     }
 
-    private function throwingHttp(\Throwable $e): PropitHttpClientInterface
+    private function throwingHttp(\Throwable $e): ProppitHttpClientInterface
     {
-        return new class($e) implements PropitHttpClientInterface {
+        return new class($e) implements ProppitHttpClientInterface {
             public function __construct(private \Throwable $e) {}
 
             public function request(string $method, string $uri, array $headers = [], array $query = [], array $json = []): HttpResponse
@@ -99,9 +99,9 @@ final class PublisherApiTest extends TestCase
     }
 
     /** Returns 404 on GET, then 201 on POST. */
-    private function notFoundThenCreated(): PropitHttpClientInterface
+    private function notFoundThenCreated(): ProppitHttpClientInterface
     {
-        return new class($this->publisherJson()) implements PropitHttpClientInterface {
+        return new class($this->publisherJson()) implements ProppitHttpClientInterface {
             private int $calls = 0;
 
             public function __construct(private array $json) {}
@@ -118,9 +118,9 @@ final class PublisherApiTest extends TestCase
     }
 
     /** Returns 200 on GET, then 200 on PUT. */
-    private function foundThenUpdated(): PropitHttpClientInterface
+    private function foundThenUpdated(): ProppitHttpClientInterface
     {
-        return new class($this->publisherJson()) implements PropitHttpClientInterface {
+        return new class($this->publisherJson()) implements ProppitHttpClientInterface {
             public function __construct(private array $json) {}
 
             public function request(string $method, string $uri, array $headers = [], array $query = [], array $json = []): HttpResponse
@@ -274,7 +274,7 @@ final class PublisherApiTest extends TestCase
 
     public function test_country_is_injected_in_publishers_url(): void
     {
-        $cfg = PropitConfig::fromArray([
+        $cfg = ProppitConfig::fromArray([
             'base_url'      => 'https://real-time.proppit.com/api/v2',
             'client_id'     => 'id',
             'client_secret' => 's',

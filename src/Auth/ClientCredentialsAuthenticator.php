@@ -2,29 +2,29 @@
 
 declare(strict_types=1);
 
-namespace Propit\Auth;
+namespace Proppit\Auth;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
-use Propit\Config\PropitConfig;
-use Propit\Contracts\PropitAuthenticatorInterface;
-use Propit\Exceptions\AuthException;
+use Proppit\Config\ProppitConfig;
+use Proppit\Contracts\ProppitAuthenticatorInterface;
+use Proppit\Exceptions\AuthException;
 
 /**
  * Obtains a Bearer token from POST /token using system-level credentials
- * (PROPIT_CLIENT_ID / PROPIT_CLIENT_SECRET). These credentials represent
+ * (PROPPIT_CLIENT_ID / PROPPIT_CLIENT_SECRET). These credentials represent
  * Homlity as an API client — they are NOT per-agency credentials.
  *
  * The token is cached in-memory for the lifetime of this instance and renewed
  * automatically 30 seconds before expiry. The client_secret is never logged.
  */
-final class ClientCredentialsAuthenticator implements PropitAuthenticatorInterface
+final class ClientCredentialsAuthenticator implements ProppitAuthenticatorInterface
 {
     private ?string $token = null;
     private int $expiration = 0;
 
     public function __construct(
-        private readonly PropitConfig $config,
+        private readonly ProppitConfig $config,
         private readonly ClientInterface $client,
     ) {
     }
@@ -43,7 +43,7 @@ final class ClientCredentialsAuthenticator implements PropitAuthenticatorInterfa
     private function requestToken(): void
     {
         // Per OpenAPI spec POST /token accepts {"user": "...", "password": "..."}
-        // PROPIT_CLIENT_ID maps to "user" and PROPIT_CLIENT_SECRET maps to "password".
+        // PROPPIT_CLIENT_ID maps to "user" and PROPPIT_CLIENT_SECRET maps to "password".
         try {
             $response = $this->client->request('POST', rtrim($this->config->baseUrl(), '/') . '/token', [
                 'json' => [
@@ -70,7 +70,7 @@ final class ClientCredentialsAuthenticator implements PropitAuthenticatorInterfa
 
         if ($statusCode === 401 || $statusCode === 403) {
             throw new AuthException(
-                'Proppit rejected the client credentials. Verify PROPIT_CLIENT_ID and PROPIT_CLIENT_SECRET.',
+                'Proppit rejected the client credentials. Verify PROPPIT_CLIENT_ID and PROPPIT_CLIENT_SECRET.',
                 ['status' => $statusCode],
                 $statusCode,
             );

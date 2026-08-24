@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Propit\DTO;
+namespace Proppit\DTO;
 
 /**
  * Response received from Proppit after creating, updating, or querying a publisher.

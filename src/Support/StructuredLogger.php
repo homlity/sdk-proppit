@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Propit\Support;
+namespace Proppit\Support;
 
 use Psr\Log\LoggerInterface;
 

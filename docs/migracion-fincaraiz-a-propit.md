@@ -1,6 +1,6 @@
 # Migración FincaRaíz SDK → Proppit SDK
 
-Este documento describe los cambios conceptuales y técnicos necesarios para migrar una integración basada en el SDK de FincaRaíz al SDK de Proppit (`propit/sdk-propit`).
+Este documento describe los cambios conceptuales y técnicos necesarios para migrar una integración basada en el SDK de FincaRaíz al SDK de Proppit (`homlity/sdk-proppit`).
 
 ---
 
@@ -95,9 +95,9 @@ Este documento describe los cambios conceptuales y técnicos necesarios para mig
 
 ## Checklist de migración
 
-- [ ] Configurar `PROPIT_API_USER` y `PROPIT_API_PASSWORD` (no son la misma API Key de FincaRaíz)
+- [ ] Configurar `PROPPIT_API_USER` y `PROPPIT_API_PASSWORD` (no son la misma API Key de FincaRaíz)
 - [ ] Registrar publisher con `POST /proppit/{country}/publishers` y esperar aprobación del equipo Proppit
-- [ ] Confirmar `PROPIT_PUBLISHER_EXTERNAL_ID` con Proppit (requerido para GET/DELETE)
+- [ ] Confirmar `PROPPIT_PUBLISHER_EXTERNAL_ID` con Proppit (requerido para GET/DELETE)
 - [ ] Validar que todos los inmuebles tienen `latitud` y `longitud` (requerido)
 - [ ] Adaptar `titulo` y `descripcion` con el campo `locale: es-CO`
 - [ ] Mapear `tipo_inmueble` local al catálogo de Proppit (`GET /property-types`)

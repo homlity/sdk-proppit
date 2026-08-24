@@ -2,29 +2,29 @@
 
 declare(strict_types=1);
 
-namespace Propit\Tests\Unit;
+namespace Proppit\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Propit\Api\PropertyApi;
-use Propit\Config\PropitConfig;
-use Propit\Contracts\PropitHttpClientInterface;
-use Propit\DTO\HttpResponse;
-use Propit\Exceptions\ApiException;
-use Propit\Exceptions\AuthException;
-use Propit\Exceptions\PublisherNotReadyException;
-use Propit\Exceptions\PublisherPermissionException;
-use Propit\Exceptions\RateLimitException;
-use Propit\Exceptions\ValidationException;
-use Propit\Normalizers\PropertyPayloadNormalizer;
+use Proppit\Api\PropertyApi;
+use Proppit\Config\ProppitConfig;
+use Proppit\Contracts\ProppitHttpClientInterface;
+use Proppit\DTO\HttpResponse;
+use Proppit\Exceptions\ApiException;
+use Proppit\Exceptions\AuthException;
+use Proppit\Exceptions\PublisherNotReadyException;
+use Proppit\Exceptions\PublisherPermissionException;
+use Proppit\Exceptions\RateLimitException;
+use Proppit\Exceptions\ValidationException;
+use Proppit\Normalizers\PropertyPayloadNormalizer;
 
 final class PropertyApiTest extends TestCase
 {
-    private PropitConfig $cfg;
+    private ProppitConfig $cfg;
     private PropertyPayloadNormalizer $normalizer;
 
     protected function setUp(): void
     {
-        $this->cfg = PropitConfig::fromArray([
+        $this->cfg = ProppitConfig::fromArray([
             'base_url'              => 'https://real-time.proppit.com/api/v2',
             'client_id'             => 'u',
             'client_secret'         => 'p',
@@ -53,9 +53,9 @@ final class PropertyApiTest extends TestCase
 
     // ── HTTP transport fake ──────────────────────────────────────────────────
 
-    private function fakeHttp(int $status, array $json = []): PropitHttpClientInterface
+    private function fakeHttp(int $status, array $json = []): ProppitHttpClientInterface
     {
-        return new class($status, $json) implements PropitHttpClientInterface {
+        return new class($status, $json) implements ProppitHttpClientInterface {
             public function __construct(private int $status, private array $json)
             {
             }
@@ -71,9 +71,9 @@ final class PropertyApiTest extends TestCase
     /**
      * Captures the last request made so assertions can inspect method/uri/body.
      */
-    private function capturingHttp(int $status, array $json, array &$captured): PropitHttpClientInterface
+    private function capturingHttp(int $status, array $json, array &$captured): ProppitHttpClientInterface
     {
-        return new class($status, $json, $captured) implements PropitHttpClientInterface {
+        return new class($status, $json, $captured) implements ProppitHttpClientInterface {
             public function __construct(
                 private int $status,
                 private array $json,
@@ -90,9 +90,9 @@ final class PropertyApiTest extends TestCase
     }
 
     /** Always throws the given exception. */
-    private function throwingHttp(\Throwable $e): PropitHttpClientInterface
+    private function throwingHttp(\Throwable $e): ProppitHttpClientInterface
     {
-        return new class($e) implements PropitHttpClientInterface {
+        return new class($e) implements ProppitHttpClientInterface {
             public function __construct(private \Throwable $e)
             {
             }
@@ -172,7 +172,7 @@ final class PropertyApiTest extends TestCase
 
     public function test_find_without_publisher_external_id_throws_ValidationException(): void
     {
-        $cfgNoPublisher = PropitConfig::fromArray([
+        $cfgNoPublisher = ProppitConfig::fromArray([
             'base_url'    => 'https://real-time.proppit.com/api/v2',
             'client_id'     => 'u',
             'client_secret' => 'p',
@@ -228,7 +228,7 @@ final class PropertyApiTest extends TestCase
 
     public function test_delete_without_publisher_external_id_throws_ValidationException(): void
     {
-        $cfgNoPublisher = PropitConfig::fromArray([
+        $cfgNoPublisher = ProppitConfig::fromArray([
             'base_url'    => 'https://real-time.proppit.com/api/v2',
             'client_id'     => 'u',
             'client_secret' => 'p',
@@ -319,7 +319,7 @@ final class PropertyApiTest extends TestCase
 
     public function test_country_is_injected_in_url(): void
     {
-        $cfg = PropitConfig::fromArray([
+        $cfg = ProppitConfig::fromArray([
             'base_url'              => 'https://real-time.proppit.com/api/v2',
             'client_id'             => 'u',
             'client_secret'         => 'p',
@@ -396,10 +396,10 @@ final class PropertyApiTest extends TestCase
     public function test_publish_does_not_retry_indefinitely_on_publisher_permission_error(): void
     {
         $callCount = 0;
-        $http      = new class($callCount) implements \Propit\Contracts\PropitHttpClientInterface {
+        $http      = new class($callCount) implements \Proppit\Contracts\ProppitHttpClientInterface {
             public function __construct(private int &$count) {}
 
-            public function request(string $method, string $uri, array $headers = [], array $query = [], array $json = []): \Propit\DTO\HttpResponse
+            public function request(string $method, string $uri, array $headers = [], array $query = [], array $json = []): \Proppit\DTO\HttpResponse
             {
                 $this->count++;
                 throw new PublisherNotReadyException('homlity_agency_1', null, []);
@@ -423,16 +423,16 @@ final class PropertyApiTest extends TestCase
     {
         // Simulates: first call fails (publisher not ready), second succeeds (activated)
         $calls = 0;
-        $http  = new class($calls) implements \Propit\Contracts\PropitHttpClientInterface {
+        $http  = new class($calls) implements \Proppit\Contracts\ProppitHttpClientInterface {
             public function __construct(private int &$calls) {}
 
-            public function request(string $method, string $uri, array $headers = [], array $query = [], array $json = []): \Propit\DTO\HttpResponse
+            public function request(string $method, string $uri, array $headers = [], array $query = [], array $json = []): \Proppit\DTO\HttpResponse
             {
                 $this->calls++;
                 if ($this->calls === 1) {
                     throw new PublisherNotReadyException('homlity_agency_1', null, []);
                 }
-                return new \Propit\DTO\HttpResponse(201, [], '{}', ['referenceId' => 'CO-1', 'status' => 'published']);
+                return new \Proppit\DTO\HttpResponse(201, [], '{}', ['referenceId' => 'CO-1', 'status' => 'published']);
             }
         };
 

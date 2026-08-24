@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Propit\DTO;
+namespace Proppit\DTO;
 
 /**
  * Represents a publisher (agency/inmobiliaria) to be registered or updated in Proppit.

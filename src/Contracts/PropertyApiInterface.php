@@ -2,26 +2,26 @@
 
 declare(strict_types=1);
 
-namespace Propit\Contracts;
+namespace Proppit\Contracts;
 
-use Propit\DTO\PropertyPayload;
-use Propit\DTO\PropertyResponse;
-use Propit\Exceptions\PropitException;
+use Proppit\DTO\PropertyPayload;
+use Proppit\DTO\PropertyResponse;
+use Proppit\Exceptions\ProppitException;
 
 interface PropertyApiInterface
 {
-    /** @throws PropitException */
+    /** @throws ProppitException */
     public function publish(PropertyPayload|array $payload): PropertyResponse;
 
-    /** @throws PropitException */
+    /** @throws ProppitException */
     public function update(string $referenceId, PropertyPayload|array $payload): PropertyResponse;
 
-    /** @throws PropitException */
+    /** @throws ProppitException */
     public function find(string $referenceId): PropertyResponse;
 
-    /** @throws PropitException */
+    /** @throws ProppitException */
     public function findByExternalId(string $externalId, string $referenceId): ?PropertyResponse;
 
-    /** @throws PropitException */
+    /** @throws ProppitException */
     public function delete(string $referenceId): PropertyResponse;
 }

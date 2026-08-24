@@ -2,18 +2,18 @@
 
 declare(strict_types=1);
 
-namespace Propit\Tests\Unit;
+namespace Proppit\Tests\Unit;
 
 use InvalidArgumentException;
 use PHPUnit\Framework\TestCase;
-use Propit\Config\PropitConfig;
-use Propit\Exceptions\AuthException;
+use Proppit\Config\ProppitConfig;
+use Proppit\Exceptions\AuthException;
 
-final class PropitConfigTest extends TestCase
+final class ProppitConfigTest extends TestCase
 {
     public function test_config_normalizes_base_url(): void
     {
-        $cfg = PropitConfig::fromArray([
+        $cfg = ProppitConfig::fromArray([
             'base_url'      => 'https://real-time.proppit.com/api/v2/',
             'client_id'     => 'u',
             'client_secret' => 'p',
@@ -25,9 +25,9 @@ final class PropitConfigTest extends TestCase
     public function test_missing_client_id_throws_AuthException(): void
     {
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessageMatches('/PROPIT_CLIENT_ID/');
+        $this->expectExceptionMessageMatches('/PROPPIT_CLIENT_ID/');
 
-        PropitConfig::fromArray([
+        ProppitConfig::fromArray([
             'base_url'      => 'https://real-time.proppit.com/api/v2',
             'client_secret' => 'secret',
         ]);
@@ -36,9 +36,9 @@ final class PropitConfigTest extends TestCase
     public function test_missing_client_secret_throws_AuthException(): void
     {
         $this->expectException(AuthException::class);
-        $this->expectExceptionMessageMatches('/PROPIT_CLIENT_SECRET/');
+        $this->expectExceptionMessageMatches('/PROPPIT_CLIENT_SECRET/');
 
-        PropitConfig::fromArray([
+        ProppitConfig::fromArray([
             'base_url'  => 'https://real-time.proppit.com/api/v2',
             'client_id' => 'id',
         ]);
@@ -48,14 +48,14 @@ final class PropitConfigTest extends TestCase
     {
         $this->expectException(AuthException::class);
 
-        PropitConfig::fromArray(['base_url' => 'https://real-time.proppit.com/api/v2']);
+        ProppitConfig::fromArray(['base_url' => 'https://real-time.proppit.com/api/v2']);
     }
 
     public function test_invalid_base_url_throws_InvalidArgumentException(): void
     {
         $this->expectException(InvalidArgumentException::class);
 
-        PropitConfig::fromArray([
+        ProppitConfig::fromArray([
             'base_url'      => 'not-a-url',
             'client_id'     => 'id',
             'client_secret' => 'secret',
@@ -64,7 +64,7 @@ final class PropitConfigTest extends TestCase
 
     public function test_legacy_api_user_maps_to_client_id(): void
     {
-        $cfg = PropitConfig::fromArray([
+        $cfg = ProppitConfig::fromArray([
             'base_url'    => 'https://real-time.proppit.com/api/v2',
             'api_user'    => 'legacy-user',
             'api_password' => 'legacy-pass',

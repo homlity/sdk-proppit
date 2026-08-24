@@ -47,8 +47,8 @@ class ComposerStaticInit22a2b2b52bac1d10a77a0ccdd2cd797b
             'Psr\\Http\\Client\\' => 16,
             'Psr\\Container\\' => 14,
             'Psr\\Clock\\' => 10,
-            'Propit\\Tests\\' => 13,
-            'Propit\\' => 7,
+            'Proppit\\Tests\\' => 14,
+            'Proppit\\' => 8,
             'PhpParser\\' => 10,
             'PhpOption\\' => 10,
         ),
@@ -137,11 +137,11 @@ class ComposerStaticInit22a2b2b52bac1d10a77a0ccdd2cd797b
         array (
             0 => __DIR__ . '/..' . '/psr/clock/src',
         ),
-        'Propit\\Tests\\' => 
+        'Proppit\\Tests\\' => 
         array (
             0 => __DIR__ . '/../..' . '/tests',
         ),
-        'Propit\\' => 
+        'Proppit\\' => 
         array (
             0 => __DIR__ . '/../..' . '/src',
         ),

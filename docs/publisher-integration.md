@@ -4,12 +4,12 @@
 
 ### Credenciales del sistema (client_id / client_secret)
 
-`PROPIT_CLIENT_ID` y `PROPIT_CLIENT_SECRET` son credenciales técnicas que Proppit entrega a Homlity como aplicación cliente. Identifican a **Homlity como sistema integrador**, no a cada inmobiliaria individualmente.
+`PROPPIT_CLIENT_ID` y `PROPPIT_CLIENT_SECRET` son credenciales técnicas que Proppit entrega a Homlity como aplicación cliente. Identifican a **Homlity como sistema integrador**, no a cada inmobiliaria individualmente.
 
 | Concepto | Descripción |
 |---|---|
-| `PROPIT_CLIENT_ID` | Identificador de Homlity como cliente API |
-| `PROPIT_CLIENT_SECRET` | Secreto del sistema — nunca se expone ni se guarda por inmobiliaria |
+| `PROPPIT_CLIENT_ID` | Identificador de Homlity como cliente API |
+| `PROPPIT_CLIENT_SECRET` | Secreto del sistema — nunca se expone ni se guarda por inmobiliaria |
 | Scope | Global para toda la instalación de Homlity |
 | Almacenamiento | Solo en `.env` |
 
@@ -91,15 +91,15 @@ El SDK asigna `pending_activation` por defecto después de `create` o `update`, 
 
 ```ini
 # .env
-PROPIT_CLIENT_ID=tu-client-id
-PROPIT_CLIENT_SECRET=tu-client-secret
-PROPIT_COUNTRY=CO
+PROPPIT_CLIENT_ID=tu-client-id
+PROPPIT_CLIENT_SECRET=tu-client-secret
+PROPPIT_COUNTRY=CO
 ```
 
 ### 2. Registrar/sincronizar un publisher
 
 ```php
-use Propit\DTO\PublisherPayload;
+use Proppit\DTO\PublisherPayload;
 
 $externalId = 'homlity_agency_' . $inmobiliaria->uuid;
 
@@ -166,7 +166,7 @@ try {
     // Guardar referenceId para actualizaciones futuras
     $inmueble->update(['proppit_reference_id' => $response->referenceId]);
 
-} catch (\Propit\Exceptions\PublisherPermissionException $e) {
+} catch (\Proppit\Exceptions\PublisherPermissionException $e) {
     // El publisher no está habilitado todavía
     $inmobiliaria->update([
         'proppit_publisher_status' => 'cannot_publish',
@@ -284,7 +284,7 @@ Campos adicionales en `PublisherNotReadyException` (heredados):
 | Consultar inmueble | `GET` | `/proppit/{country}/ads/{referenceId}?externalId={publisherExternalId}` |
 | Eliminar inmueble | `DELETE` | `/proppit/{country}/ads/{referenceId}?externalId={publisherExternalId}` |
 
-> **Nota:** El token endpoint usa los campos `user` y `password` en el body (per spec OpenAPI). `PROPIT_CLIENT_ID` se envía como `user` y `PROPIT_CLIENT_SECRET` como `password`. El nombre de los campos en la API es del spec oficial; los nombres en `.env` reflejan la semántica de negocio (credenciales del cliente Homlity).
+> **Nota:** El token endpoint usa los campos `user` y `password` en el body (per spec OpenAPI). `PROPPIT_CLIENT_ID` se envía como `user` y `PROPPIT_CLIENT_SECRET` como `password`. El nombre de los campos en la API es del spec oficial; los nombres en `.env` reflejan la semántica de negocio (credenciales del cliente Homlity).
 
 ---
 
@@ -303,7 +303,7 @@ HTTP 403 — "Publisher could not publish"
 El SDK detecta este error y lanza `PublisherPermissionException` (o su subclase `PublisherNotReadyException`) con el `requestId` de Proppit:
 
 ```php
-use Propit\Exceptions\PublisherPermissionException;
+use Proppit\Exceptions\PublisherPermissionException;
 
 try {
     $client->properties()->publish($payload);
@@ -326,7 +326,7 @@ try {
     var_dump($response->raw);              // respuesta completa de Proppit
     var_dump($response->canPublish());     // false hasta que Proppit active
     var_dump($response->activationStatus); // 'pending_activation'
-} catch (\Propit\Exceptions\ApiException $e) {
+} catch (\Proppit\Exceptions\ApiException $e) {
     // 404 = el publisher no existe — ejecutar createOrUpdate() primero
 }
 ```
@@ -339,8 +339,8 @@ try {
 |---|---|---|
 | `PublisherPermissionException` | Publisher recibido por Proppit pero no activado | Contactar soporte de Proppit con `external_id` y `requestId()` |
 | `ForbiddenException` | 403 genérico no relacionado con publisher | Revisar permisos de la cuenta y endpoint usado |
-| `AuthException: Missing PROPIT_CLIENT_ID` | Falta la variable en `.env` | Configurar `PROPIT_CLIENT_ID` |
-| `AuthException: Unauthorized response` | Credenciales incorrectas (401) | Verificar `PROPIT_CLIENT_ID` y `PROPIT_CLIENT_SECRET` |
+| `AuthException: Missing PROPPIT_CLIENT_ID` | Falta la variable en `.env` | Configurar `PROPPIT_CLIENT_ID` |
+| `AuthException: Unauthorized response` | Credenciales incorrectas (401) | Verificar `PROPPIT_CLIENT_ID` y `PROPPIT_CLIENT_SECRET` |
 | `ValidationException: externalId is required` | `PublisherPayload::externalId` vacío | Generar el externalId con uuid o id de inmobiliaria |
 | `ValidationException: publisher.externalId is required` | Falta el publisher en el ad payload | Incluir `publisher.externalId` en el payload del inmueble |
 | `ApiException: HTTP 404` en publisher | Publisher aún no registrado | Ejecutar `createOrUpdate()` primero |

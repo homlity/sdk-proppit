@@ -2,12 +2,12 @@
 
 declare(strict_types=1);
 
-namespace Propit\Tests\Unit;
+namespace Proppit\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Propit\DTO\PublisherPayload;
-use Propit\Exceptions\ValidationException;
-use Propit\Normalizers\PublisherPayloadNormalizer;
+use Proppit\DTO\PublisherPayload;
+use Proppit\Exceptions\ValidationException;
+use Proppit\Normalizers\PublisherPayloadNormalizer;
 
 final class PublisherPayloadNormalizerTest extends TestCase
 {

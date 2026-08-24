@@ -2,11 +2,11 @@
 
 | Tipo | Finca Raíz | Proppit SDK |
 |---|---|---|
-| Cliente | `FincaRaizClient` | `PropitClient` |
-| API propiedades | `...PropertyApi` | `Propit\\Api\\PropertyApi` |
-| Config base url | `FINCARAIZ_BASE_URL` | `PROPIT_BASE_URL` |
-| Credencial 1 | `FINCARAIZ_API_KEY` | `PROPIT_API_USER` (compat: `PROPIT_API_KEY`) |
-| Credencial 2 | `FINCARAIZ_API_SECRET` | `PROPIT_API_PASSWORD` (compat: `PROPIT_API_SECRET`) |
+| Cliente | `FincaRaizClient` | `ProppitClient` |
+| API propiedades | `...PropertyApi` | `Proppit\\Api\\PropertyApi` |
+| Config base url | `FINCARAIZ_BASE_URL` | `PROPPIT_BASE_URL` |
+| Credencial 1 | `FINCARAIZ_API_KEY` | `PROPPIT_API_USER` (compat: `PROPPIT_API_KEY`) |
+| Credencial 2 | `FINCARAIZ_API_SECRET` | `PROPPIT_API_PASSWORD` (compat: `PROPPIT_API_SECRET`) |
 | Endpoint auth | N/A | `POST /token` |
 | Endpoint crear | `/.../properties` | `POST /proppit/{country}/ads` |
 | Endpoint actualizar | `/.../properties/{id}` | `PUT /proppit/{country}/ads/{referenceId}` |

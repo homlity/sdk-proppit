@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Propit\Tests\Unit;
+namespace Proppit\Tests\Unit;
 
 use PHPUnit\Framework\TestCase;
-use Propit\Support\StructuredLogger;
+use Proppit\Support\StructuredLogger;
 
 final class StructuredLoggerTest extends TestCase
 {

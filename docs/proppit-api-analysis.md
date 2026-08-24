@@ -295,7 +295,7 @@ El SDK reintenta automáticamente en errores transitorios:
 | `5xx` (500, 502, 503, 504) | Retry con backoff exponencial |
 | `4xx` (salvo 429) | **No reintenta** — son errores del cliente |
 
-Configurable vía `PROPIT_RETRY_ATTEMPTS` y `PROPIT_RETRY_DELAY_MS`.
+Configurable vía `PROPPIT_RETRY_ATTEMPTS` y `PROPPIT_RETRY_DELAY_MS`.
 
 ---
 

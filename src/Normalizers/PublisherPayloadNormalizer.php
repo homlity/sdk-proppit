@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace Propit\Normalizers;
+namespace Proppit\Normalizers;
 
-use Propit\DTO\PublisherPayload;
-use Propit\Exceptions\ValidationException;
+use Proppit\DTO\PublisherPayload;
+use Proppit\Exceptions\ValidationException;
 
 /**
  * Validates and maps a PublisherPayload to the Proppit API body.

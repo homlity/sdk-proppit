@@ -2,21 +2,21 @@
 
 declare(strict_types=1);
 
-namespace Propit\Auth;
+namespace Proppit\Auth;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Exception\GuzzleException;
-use Propit\Config\PropitConfig;
-use Propit\Contracts\PropitAuthenticatorInterface;
-use Propit\Exceptions\AuthException;
+use Proppit\Config\ProppitConfig;
+use Proppit\Contracts\ProppitAuthenticatorInterface;
+use Proppit\Exceptions\AuthException;
 
-final class ApiKeySecretAuthenticator implements PropitAuthenticatorInterface
+final class ApiKeySecretAuthenticator implements ProppitAuthenticatorInterface
 {
     private ?string $token = null;
     private int $expiration = 0;
 
     public function __construct(
-        private readonly PropitConfig $config,
+        private readonly ProppitConfig $config,
         private readonly ClientInterface $client,
     ) {
     }

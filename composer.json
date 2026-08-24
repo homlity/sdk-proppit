@@ -18,18 +18,18 @@
   },
   "autoload": {
     "psr-4": {
-      "Propit\\": "src/"
+      "Proppit\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "Propit\\Tests\\": "tests/"
+      "Proppit\\Tests\\": "tests/"
     }
   },
   "extra": {
     "laravel": {
       "providers": [
-        "Propit\\Laravel\\PropitServiceProvider"
+        "Proppit\\Laravel\\ProppitServiceProvider"
       ]
     }
   },

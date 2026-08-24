@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-namespace Propit\Tests\Unit;
+namespace Proppit\Tests\Unit;
 
 use GuzzleHttp\ClientInterface;
 use GuzzleHttp\Psr7\Response;
 use PHPUnit\Framework\TestCase;
-use Propit\Auth\ApiKeySecretAuthenticator;
-use Propit\Config\PropitConfig;
+use Proppit\Auth\ApiKeySecretAuthenticator;
+use Proppit\Config\ProppitConfig;
 
 final class AuthenticatorTest extends TestCase
 {
@@ -22,7 +22,7 @@ final class AuthenticatorTest extends TestCase
             public function getConfig($option = null) { return null; }
         };
 
-        $cfg = PropitConfig::fromArray(['base_url' => 'https://real-time.proppit.com/api/v2', 'api_user' => 'u', 'api_password' => 'p']);
+        $cfg = ProppitConfig::fromArray(['base_url' => 'https://real-time.proppit.com/api/v2', 'api_user' => 'u', 'api_password' => 'p']);
         $auth = new ApiKeySecretAuthenticator($cfg, $client);
 
         $headers = $auth->authenticate();
