@@ -108,32 +108,6 @@ $client = app(PropitClient::class);
 
 ---
 
-## Sincronizar publisher (inmobiliaria)
-
-Antes de publicar inmuebles, registra la inmobiliaria como publisher en Proppit:
-
-```php
-use Propit\DTO\PublisherPayload;
-
-$externalId = 'homlity_agency_' . $inmobiliaria->id;
-
-$response = $client->publishers()->createOrUpdate(new PublisherPayload(
-    externalId: $externalId,
-    name:       $inmobiliaria->nombre,
-    email:      $inmobiliaria->email_contacto,
-    phone:      $inmobiliaria->telefono,
-));
-
-// Persiste este ID en tu base de datos
-$inmobiliaria->update([
-    'proppit_external_id'  => $externalId,
-    'proppit_publisher_id' => $response->publisherId(),
-    'proppit_sync_status'  => 'synced',
-]);
-```
-
-Ver [examples/sync_publisher.php](examples/sync_publisher.php).
-
 ---
 
 ## Publishing a property
@@ -210,21 +184,125 @@ echo $response->status; // deleted
 
 ---
 
+## Flujo real CRM/lonja Proppit
+
+> Las credenciales `PROPIT_CLIENT_ID` / `PROPIT_CLIENT_SECRET` son **globales para toda
+> la integración CRM/lonja**. No son credenciales por inmobiliaria.
+
+### Regla fundamental: publisher enviado ≠ publisher activo
+
+El flujo real de integración tiene estas etapas:
+
+1. **Cada inmobiliaria se registra como publisher** con su propio `external_id`.
+2. **Proppit debe activar/conectar el publisher manualmente** después de recibirlo.
+3. **Hasta que Proppit active el publisher**, cualquier intento de publicar anuncio recibirá:
+   ```json
+   { "status": 403, "error": "Publisher could not publish" }
+   ```
+4. **Una vez activado**, se pueden enviar anuncios vía API.
+5. **Proppit recomienda eliminar las propiedades existentes** en la cuenta antes de iniciar
+   publicaciones por API, para evitar conflictos con el inventario histórico.
+
+### Verificar estado de activación
+
+```php
+$response = $client->publishers()->createOrUpdate($payload);
+
+if ($response->isPendingActivation()) {
+    // Publisher enviado pero NO habilitado todavía.
+    // Solicitar activación a Proppit antes de publicar anuncios.
+    // Ver docs/publisher-integration.md para la plantilla de solicitud.
+    $inmobiliaria->update([
+        'proppit_publisher_status' => $response->activationStatus, // 'pending_activation'
+        'proppit_can_publish'      => false,
+    ]);
+}
+
+if ($response->canPublish()) {
+    // Proppit confirmó explícitamente que este publisher puede publicar.
+    $inmobiliaria->update([
+        'proppit_publisher_status' => $response->activationStatus, // 'active'
+        'proppit_can_publish'      => true,
+    ]);
+}
+```
+
+### Capturar 403 Publisher could not publish
+
+```php
+use Propit\Exceptions\PublisherPermissionException;
+
+try {
+    $client->properties()->publish($payload);
+} catch (PublisherPermissionException $e) {
+    // El publisher existe pero Proppit NO lo ha activado todavía.
+    // Esto NO es un problema de credenciales — client_id/client_secret son correctos.
+    echo $e->requestId();       // Request ID de Proppit para diagnóstico
+    echo $e->originalError();   // "Publisher could not publish"
+    echo $e->operationalHint(); // Guía para operadores
+}
+```
+
+Ver [docs/publisher-integration.md](docs/publisher-integration.md) y
+[docs/proppit-initial-sync.md](docs/proppit-initial-sync.md) para el flujo completo.
+
+---
+
+## Sincronizar publisher (inmobiliaria)
+
+Antes de publicar inmuebles, registra la inmobiliaria como publisher en Proppit:
+
+```php
+use Propit\DTO\PublisherPayload;
+
+$externalId = 'homlity_agency_' . $inmobiliaria->uuid;
+
+$response = $client->publishers()->createOrUpdate(new PublisherPayload(
+    externalId: $externalId,
+    name:       $inmobiliaria->nombre,
+    email:      $inmobiliaria->email_contacto,
+    phone:      $inmobiliaria->telefono,
+));
+
+// Siempre pending_activation después del sync — Proppit debe activar manualmente.
+$inmobiliaria->update([
+    'proppit_external_id'      => $externalId,
+    'proppit_publisher_id'     => $response->publisherId(),
+    'proppit_publisher_status' => $response->activationStatus,
+    'proppit_can_publish'      => $response->canPublish(), // false por defecto
+    'proppit_last_synced_at'   => now(),
+]);
+```
+
+Ver [examples/sync_publisher.php](examples/sync_publisher.php).
+
+---
+
 ## Error handling
 
 ```php
 use Propit\Exceptions\ApiException;
 use Propit\Exceptions\AuthException;
+use Propit\Exceptions\ForbiddenException;
+use Propit\Exceptions\PublisherPermissionException;
 use Propit\Exceptions\RateLimitException;
 use Propit\Exceptions\ValidationException;
 
 try {
     $response = $client->properties()->publish($payload);
+} catch (PublisherPermissionException $e) {
+    // 403 "Publisher could not publish" — publisher no activado por Proppit.
+    // NO son credenciales incorrectas. Solicitar activación a Proppit.
+    echo $e->requestId();       // Request ID de Proppit
+    echo $e->operationalHint(); // Guía legible para operadores
+} catch (ForbiddenException $e) {
+    // 403 genérico — no relacionado con publisher.
+    echo $e->getMessage();
 } catch (ValidationException $e) {
     // Validación local falló antes de la llamada HTTP.
     echo $e->getMessage();
 } catch (AuthException $e) {
-    // 401/403 de la API, o credenciales faltantes.
+    // 401 — credenciales incorrectas o faltantes.
     echo $e->getMessage();
 } catch (RateLimitException $e) {
     // 429 — reintentar después de $e->retryAfter segundos.
@@ -239,10 +317,13 @@ try {
 
 ```
 PropitException
-├── ValidationException   — validación local del payload
-├── AuthException         — credenciales faltantes o 401/403
-├── RateLimitException    — 429 (extends ApiException)
-└── ApiException          — cualquier otro error HTTP
+├── ValidationException        — validación local del payload
+├── AuthException              — credenciales faltantes o 401
+├── RateLimitException         — 429 (extends ApiException)
+├── ForbiddenException         — 403 genérico (extends ApiException)
+└── ApiException               — cualquier otro error HTTP
+    └── PublisherPermissionException  — 403 "Publisher could not publish"
+        └── PublisherNotReadyException — alias compatible con versiones anteriores
 ```
 
 ---

@@ -38,19 +38,50 @@ Homlity debe generar y mantener un `external_id` estable y único para cada inmo
 **Formato recomendado:**
 
 ```php
-// Con ID numérico:
-$externalId = 'homlity_agency_' . $inmobiliaria->id;
+// Con UUID estable de inmobiliaria (preferido):
+$externalId = $inmobiliaria->uuid;
 
-// Con UUID:
+// Con prefijo para mayor claridad:
 $externalId = 'homlity_agency_' . $inmobiliaria->uuid;
+
+// Con ID numérico (solo si no existe UUID):
+$externalId = 'homlity_agency_' . $inmobiliaria->id;
 ```
 
 **Reglas:**
 - Debe ser único por inmobiliaria.
-- Debe ser estable (no cambiar con el tiempo).
+- Debe ser estable — **no cambiar** sin coordinar con Proppit (el publisher ya activado quedaría desconectado).
 - No debe ser el email, nombre comercial ni NIT como valor principal.
 - Solo caracteres: letras, dígitos, guiones, guiones bajos, puntos, `@`.
 - Máximo 255 caracteres.
+- Si ya se envió y activó un external_id en Proppit, **no modificarlo** sin soporte de Proppit.
+
+---
+
+## Flujo real CRM/lonja: publisher enviado ≠ publisher activo
+
+> **Regla fundamental:** Crear o sincronizar un publisher en Proppit **no significa** que el publisher esté habilitado para publicar anuncios.
+>
+> Proppit debe activar/conectar manualmente cada publisher después de recibirlo.
+> Hasta que Proppit lo habilite, cualquier intento de publicar un anuncio recibirá:
+>
+> ```json
+> { "status": 403, "error": "Publisher could not publish" }
+> ```
+
+### Estados del publisher (internos del SDK)
+
+| Estado | Valor | Significado |
+|---|---|---|
+| `pending_sync` | — | Publisher todavía no enviado a Proppit |
+| `synced` | — | Publisher enviado, Proppit lo recibió pero no confirmó activación |
+| `pending_activation` | **default** | Publisher recibido; Proppit no ha confirmado permiso para publicar |
+| `active` | — | Proppit confirmó explícitamente que el publisher puede publicar |
+| `cannot_publish` | — | Proppit respondió 403 al intentar publicar |
+| `rejected` | — | Proppit rechazó el publisher |
+| `error` | — | Estado inesperado en la respuesta |
+
+El SDK asigna `pending_activation` por defecto después de `create` o `update`, salvo que Proppit confirme explícitamente lo contrario en la respuesta.
 
 ---
 
@@ -70,8 +101,7 @@ PROPIT_COUNTRY=CO
 ```php
 use Propit\DTO\PublisherPayload;
 
-// Generar el externalId desde el ID interno de Homlity
-$externalId = 'homlity_agency_' . $inmobiliaria->id;
+$externalId = 'homlity_agency_' . $inmobiliaria->uuid;
 
 $payload = new PublisherPayload(
     externalId: $externalId,
@@ -82,25 +112,113 @@ $payload = new PublisherPayload(
 
 $response = $client->publishers()->createOrUpdate($payload);
 
-// Persistir el publisher_id devuelto por Proppit
-$inmobiliaria->update([
-    'proppit_external_id'    => $externalId,
-    'proppit_publisher_id'   => $response->publisherId(),
-    'proppit_sync_status'    => 'synced',
-    'proppit_last_synced_at' => now(),
-    'proppit_last_error'     => null,
-]);
+// ⚠ isPendingActivation() = true después del sync por defecto
+if ($response->isPendingActivation()) {
+    $inmobiliaria->update([
+        'proppit_external_id'      => $externalId,
+        'proppit_publisher_id'     => $response->publisherId(),
+        'proppit_publisher_status' => $response->activationStatus,
+        'proppit_can_publish'      => false,   // NO puede publicar todavía
+        'proppit_last_synced_at'   => now(),
+        'proppit_last_error'       => null,
+    ]);
+
+    // → Solicitar activación a Proppit (ver plantilla más abajo)
+}
 ```
 
-### 3. Publicar un inmueble vinculado al publisher
+### 3. Solicitar activación a Proppit (paso manual)
+
+Después del sync, el equipo de Homlity debe contactar a Proppit usando la plantilla de la sección siguiente.
+
+### 4. Confirmar activación
+
+Si Proppit notifica que el publisher fue activado, o si `status()` confirma `canPublish() === true`:
 
 ```php
-$response = $client->properties()->publish([
-    'referenceId' => 'CO-' . $inmueble->id,
-    'publisher'   => ['externalId' => $inmobiliaria->proppit_external_id],
-    // ... resto del payload
-]);
+$response = $client->publishers()->status($externalId);
+
+if ($response->canPublish()) {
+    $inmobiliaria->update([
+        'proppit_publisher_status' => $response->activationStatus,
+        'proppit_can_publish'      => true,
+        'proppit_activated_at'     => now(),
+    ]);
+}
 ```
+
+### 5. Publicar anuncios (solo después de activación)
+
+```php
+// Verificar que el publisher está habilitado antes de publicar
+if (! $inmobiliaria->proppit_can_publish) {
+    // No intentar — Proppit responderá 403
+    return;
+}
+
+try {
+    $response = $client->properties()->publish([
+        'referenceId' => 'CO-' . $inmueble->id,
+        'publisher'   => ['externalId' => $inmobiliaria->proppit_external_id],
+        // ... resto del payload
+    ]);
+
+    // Guardar referenceId para actualizaciones futuras
+    $inmueble->update(['proppit_reference_id' => $response->referenceId]);
+
+} catch (\Propit\Exceptions\PublisherPermissionException $e) {
+    // El publisher no está habilitado todavía
+    $inmobiliaria->update([
+        'proppit_publisher_status' => 'cannot_publish',
+        'proppit_can_publish'      => false,
+        'proppit_last_error'       => $e->getMessage(),
+        'proppit_last_request_id'  => $e->requestId(),
+    ]);
+}
+```
+
+---
+
+## Plantilla para solicitar activación a Proppit
+
+Enviar a soporte de Proppit después de sincronizar el publisher:
+
+```
+Hola equipo Proppit,
+
+Ya enviamos/sincronizamos el publisher de la inmobiliaria desde
+la integración CRM/lonja de Homlity.
+
+Solicitamos por favor habilitar/conectar este publisher para que
+pueda publicar propiedades vía API.
+
+Datos:
+
+  - Publisher external_id         : {external_id}
+  - Publisher ID devuelto por API : {publisher_id}   (si aplica)
+  - Nombre de la inmobiliaria     : {agency_name}
+  - Request ID del sync           : {request_id}     (si aplica)
+  - Ambiente                      : producción
+
+También agradecemos confirmar si el identificador activado
+corresponde a publisher_id, external_id, integration_id o agency_id,
+y qué valor quedó asociado a la integración.
+
+Antes de proceder, confirmaremos si hay propiedades existentes
+en la cuenta que deban eliminarse para evitar conflictos con
+lo que se enviará desde la API.
+
+Quedamos atentos para iniciar el envío de anuncios.
+
+Gracias.
+```
+
+> **Nota sobre el ID `d103d0d0-5d99-4f81-b9e0-ae56cac95872`:**
+> Proppit mencionó este identificador al confirmar la activación de un publisher.
+> Debe validarse si corresponde a `publisher_id`, `external_id`, `integration_id`
+> o `agency_id` revisando la respuesta real del endpoint de publisher o los logs
+> de la solicitud original. El SDK **no hardcodea** este valor; se usa solo como
+> referencia en esta documentación.
 
 ---
 
@@ -111,13 +229,45 @@ El SDK es agnóstico a la base de datos de Homlity. La migración debe crearse e
 ```php
 // database/migrations/xxxx_add_proppit_fields_to_inmobiliarias_table.php
 Schema::table('inmobiliarias', function (Blueprint $table) {
-    $table->string('proppit_external_id')->nullable()->unique()->comment('homlity_agency_{id}');
-    $table->string('proppit_publisher_id')->nullable()->index()->comment('ID devuelto por Proppit');
-    $table->string('proppit_sync_status')->nullable()->comment('synced | pending | error');
-    $table->timestamp('proppit_last_synced_at')->nullable();
+    $table->string('proppit_external_id')->nullable()->unique()
+          ->comment('Identificador enviado a Proppit como publisher.id');
+    $table->string('proppit_publisher_id')->nullable()->index()
+          ->comment('ID devuelto por Proppit en la respuesta');
+    $table->string('proppit_activation_id')->nullable()->index()
+          ->comment('ID mencionado por Proppit al confirmar activación');
+    $table->string('proppit_publisher_status')->nullable()
+          ->comment('pending_activation | active | cannot_publish | rejected | error');
+    $table->boolean('proppit_can_publish')->default(false)
+          ->comment('Solo true cuando Proppit confirma activación');
     $table->text('proppit_last_error')->nullable();
+    $table->string('proppit_last_request_id')->nullable();
+    $table->timestamp('proppit_last_synced_at')->nullable();
+    $table->timestamp('proppit_activated_at')->nullable();
 });
 ```
+
+> El SDK **no crea ni requiere** estas columnas. Son recomendaciones para Homlity.
+
+---
+
+## Jerarquía de excepciones 403
+
+```
+ApiException
+└── PublisherPermissionException   ← 403 "Publisher could not publish"
+    └── PublisherNotReadyException  ← alias compatible con versiones anteriores
+ForbiddenException                 ← 403 genérico (no relacionado con publisher)
+```
+
+Campos disponibles en `PublisherPermissionException`:
+- `$e->requestId()` — Request ID de Proppit (útil para diagnóstico)
+- `$e->originalError()` — Texto del error devuelto por Proppit
+- `$e->rawResponse()` — Cuerpo sanitizado de la respuesta 403
+- `$e->operationalHint()` — Mensaje de guía para operadores
+
+Campos adicionales en `PublisherNotReadyException` (heredados):
+- `$e->publisherExternalId` — external_id del publisher involucrado
+- `$e->proppitRequestId` — alias de `requestId()`
 
 ---
 
@@ -150,37 +300,34 @@ HTTP 403 — "Publisher could not publish"
 
 ### Comportamiento del SDK
 
-El SDK detecta este error y lanza `PublisherNotReadyException` con el `publisherExternalId` y el `proppitRequestId` de Proppit:
+El SDK detecta este error y lanza `PublisherPermissionException` (o su subclase `PublisherNotReadyException`) con el `requestId` de Proppit:
 
 ```php
-use Propit\Exceptions\PublisherNotReadyException;
+use Propit\Exceptions\PublisherPermissionException;
 
 try {
     $client->properties()->publish($payload);
-} catch (PublisherNotReadyException $e) {
+} catch (PublisherPermissionException $e) {
     // El publisher existe pero Proppit no lo ha activado todavía.
-    echo $e->publisherExternalId; // 'homlity_agency_1'
-    echo $e->proppitRequestId;    // 'dyc4wyw2zie8baakicp1'
+    // NO son credenciales inválidas — el client_id/client_secret son correctos.
+    echo $e->requestId();       // 'req-abc123' (de Proppit)
+    echo $e->originalError();   // 'Publisher could not publish'
+    echo $e->operationalHint(); // guía legible para operadores
 }
 ```
 
-### Qué enviar a soporte de Proppit
-
-- Publisher external ID: el valor de `$e->publisherExternalId`
-- Request ID: el valor de `$e->proppitRequestId`
-- Preguntar explícitamente si el publisher requiere activación manual y si puede publicar anuncios.
-
 ### Diagnóstico del estado del publisher
 
-Mientras esperas la activación, puedes consultar el estado raw del publisher para ver si Proppit devuelve campos como `active` o `state`:
+Mientras esperas la activación, puedes consultar el estado del publisher:
 
 ```php
 try {
     $response = $client->publishers()->status('homlity_agency_1');
-    // El raw array contiene la respuesta completa de Proppit:
-    var_dump($response->raw);
+    var_dump($response->raw);              // respuesta completa de Proppit
+    var_dump($response->canPublish());     // false hasta que Proppit active
+    var_dump($response->activationStatus); // 'pending_activation'
 } catch (\Propit\Exceptions\ApiException $e) {
-    // 404 = el publisher no existe en absoluto — ejecutar createOrUpdate() primero
+    // 404 = el publisher no existe — ejecutar createOrUpdate() primero
 }
 ```
 
@@ -190,10 +337,11 @@ try {
 
 | Error | Causa | Solución |
 |---|---|---|
-| `PublisherNotReadyException` | Publisher creado pero no activado por Proppit | Contactar soporte de Proppit con `publisherExternalId` y `proppitRequestId` |
+| `PublisherPermissionException` | Publisher recibido por Proppit pero no activado | Contactar soporte de Proppit con `external_id` y `requestId()` |
+| `ForbiddenException` | 403 genérico no relacionado con publisher | Revisar permisos de la cuenta y endpoint usado |
 | `AuthException: Missing PROPIT_CLIENT_ID` | Falta la variable en `.env` | Configurar `PROPIT_CLIENT_ID` |
-| `AuthException: Proppit rejected the client credentials` | Credenciales incorrectas | Verificar `PROPIT_CLIENT_ID` y `PROPIT_CLIENT_SECRET` |
-| `ValidationException: externalId is required` | `PublisherPayload::externalId` vacío | Generar el externalId con `'homlity_agency_' . $id` |
+| `AuthException: Unauthorized response` | Credenciales incorrectas (401) | Verificar `PROPIT_CLIENT_ID` y `PROPIT_CLIENT_SECRET` |
+| `ValidationException: externalId is required` | `PublisherPayload::externalId` vacío | Generar el externalId con uuid o id de inmobiliaria |
 | `ValidationException: publisher.externalId is required` | Falta el publisher en el ad payload | Incluir `publisher.externalId` en el payload del inmueble |
 | `ApiException: HTTP 404` en publisher | Publisher aún no registrado | Ejecutar `createOrUpdate()` primero |
 
@@ -205,4 +353,5 @@ try {
 - `client_id` aparece parcialmente en logs de debug (primeros 4 chars + `***`).
 - El header `Authorization: Bearer ...` se redacta en logs.
 - `access_token` y `refresh_token` se redactan en logs.
+- `rawResponse()` en excepciones devuelve el body sanitizado (sin tokens ni secretos).
 - Nunca loguear el body de la request al endpoint `/token`.

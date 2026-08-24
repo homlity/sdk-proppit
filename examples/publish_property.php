@@ -10,8 +10,12 @@ declare(strict_types=1);
  * Prerequisites:
  *   - PROPIT_CLIENT_ID and PROPIT_CLIENT_SECRET set in .env
  *   - The publisher has been registered via sync_publisher.php
+ *   - Proppit has manually activated/connected the publisher
+ *     (if not yet activated, this will return 403 PublisherPermissionException)
  *   - PROPIT_PUBLISHER_EXTERNAL_ID set to the agency's externalId
  *     (e.g. homlity_agency_123)
+ *   - Existing properties in the Proppit account should be cleared before the
+ *     first sync to avoid conflicts. See docs/proppit-initial-sync.md.
  */
 
 require __DIR__ . '/../vendor/autoload.php';
@@ -23,7 +27,8 @@ use Propit\Auth\ClientCredentialsAuthenticator;
 use Propit\Config\PropitConfig;
 use Propit\Exceptions\ApiException;
 use Propit\Exceptions\AuthException;
-use Propit\Exceptions\PublisherNotReadyException;
+use Propit\Exceptions\ForbiddenException;
+use Propit\Exceptions\PublisherPermissionException;
 use Propit\Exceptions\RateLimitException;
 use Propit\Exceptions\ValidationException;
 use Propit\Http\GuzzlePropitHttpClient;
@@ -35,11 +40,11 @@ use Propit\Support\StructuredLogger;
 // ── 1. Configuration ─────────────────────────────────────────────────────────
 
 $config = PropitConfig::fromArray([
-    'base_url'      => getenv('PROPIT_BASE_URL') ?: 'https://real-time.proppit.com/api/v2',
-    'client_id'     => getenv('PROPIT_CLIENT_ID') ?: '',
-    'client_secret' => getenv('PROPIT_CLIENT_SECRET') ?: '',
-    'country'       => getenv('PROPIT_COUNTRY') ?: 'CO',
-    'timeout'       => (int) (getenv('PROPIT_TIMEOUT') ?: 30),
+    'base_url'       => getenv('PROPIT_BASE_URL') ?: 'https://real-time.proppit.com/api/v2',
+    'client_id'      => getenv('PROPIT_CLIENT_ID') ?: '',
+    'client_secret'  => getenv('PROPIT_CLIENT_SECRET') ?: '',
+    'country'        => getenv('PROPIT_COUNTRY') ?: 'CO',
+    'timeout'        => (int) (getenv('PROPIT_TIMEOUT') ?: 30),
     'retry_attempts' => (int) (getenv('PROPIT_RETRY_ATTEMPTS') ?: 3),
 ]);
 
@@ -57,6 +62,8 @@ $client = new PropitClient(
 // ── 3. Build the ad payload ──────────────────────────────────────────────────
 // publisher.externalId must be the same externalId used when creating the publisher.
 // In Homlity this is stored as inmobiliaria.proppit_external_id.
+//
+// Only attempt to publish if inmobiliaria.proppit_can_publish === true.
 
 $publisherExternalId = getenv('PROPIT_PUBLISHER_EXTERNAL_ID') ?: 'homlity_agency_123';
 
@@ -85,15 +92,31 @@ try {
     echo "Ad published.\n";
     echo "referenceId : {$response->referenceId}\n";
     echo "status      : {$response->status}\n";
-} catch (PublisherNotReadyException $e) {
-    echo "[PublisherNotReadyException] {$e->getMessage()}\n";
-    echo "\nContact Proppit support with:\n";
-    echo "  Publisher external ID : {$e->publisherExternalId}\n";
-    if ($e->proppitRequestId !== null) {
-        echo "  Request ID            : {$e->proppitRequestId}\n";
+} catch (PublisherPermissionException $e) {
+    // Proppit returned 403 "Publisher could not publish".
+    // The publisher exists in Proppit but has NOT been activated yet.
+    // This is NOT a credential error — credentials are fine.
+    // Proppit must manually enable this publisher.
+    echo "[PublisherPermissionException] {$e->getMessage()}\n\n";
+    echo "El publisher '{$publisherExternalId}' todavía no está habilitado para publicar.\n";
+    echo "Solicita a Proppit la activación del publisher.\n\n";
+
+    if ($e->requestId() !== null) {
+        echo "Request ID de Proppit : {$e->requestId()}\n";
     }
-    echo "\nWhile waiting for activation you can check the publisher state:\n";
-    echo "  \$client->publishers()->status('{$e->publisherExternalId}');\n";
+
+    echo "Error original        : {$e->originalError()}\n";
+    echo "\nHint: {$e->operationalHint()}\n";
+    echo "\nMientras esperas, puedes consultar el estado del publisher:\n";
+    echo "  \$client->publishers()->status('{$publisherExternalId}');\n";
+
+    // In Homlity: update inmobiliaria.proppit_publisher_status = 'cannot_publish'
+    // and set proppit_can_publish = false, proppit_last_error = $e->getMessage()
+    exit(1);
+} catch (ForbiddenException $e) {
+    // Generic 403 — not related to publisher activation.
+    echo "[ForbiddenException] {$e->getMessage()}\n";
+    echo "HTTP {$e->statusCode}: access denied for an unexpected reason.\n";
     exit(1);
 } catch (ValidationException $e) {
     echo "[ValidationException] " . $e->getMessage() . "\n";

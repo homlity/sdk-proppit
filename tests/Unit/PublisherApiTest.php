@@ -332,4 +332,65 @@ final class PublisherApiTest extends TestCase
 
         self::assertStringContainsString('id%2F1', $captured['uri']);
     }
+
+    // ── Activation states in PublisherResponse ────────────────────────────────
+
+    public function test_create_returns_pending_activation_by_default(): void
+    {
+        $api      = new PublisherApi($this->fakeHttp(201, $this->publisherJson()), $this->normalizer, $this->config);
+        $response = $api->create($this->validPayload());
+
+        self::assertTrue($response->isPendingActivation());
+        self::assertFalse($response->canPublish());
+    }
+
+    public function test_create_returns_active_when_proppit_confirms_canPublish(): void
+    {
+        $json = $this->publisherJson() + ['canPublish' => true];
+        $api  = new PublisherApi($this->fakeHttp(201, $json), $this->normalizer, $this->config);
+
+        $response = $api->create($this->validPayload());
+
+        self::assertTrue($response->canPublish());
+        self::assertFalse($response->isPendingActivation());
+    }
+
+    public function test_update_returns_pending_activation_by_default(): void
+    {
+        $api      = new PublisherApi($this->fakeHttp(200, $this->publisherJson()), $this->normalizer, $this->config);
+        $response = $api->update('homlity_agency_42', $this->validPayload());
+
+        self::assertTrue($response->isPendingActivation());
+        self::assertFalse($response->canPublish());
+    }
+
+    public function test_createOrUpdate_returns_pending_activation_when_no_confirmation(): void
+    {
+        $api      = new PublisherApi($this->notFoundThenCreated(), $this->normalizer, $this->config);
+        $response = $api->createOrUpdate($this->validPayload());
+
+        self::assertTrue($response->isPendingActivation());
+    }
+
+    public function test_status_returns_active_when_proppit_says_active(): void
+    {
+        $json = $this->publisherJson() + ['active' => true];
+        $api  = new PublisherApi($this->fakeHttp(200, $json), $this->normalizer, $this->config);
+
+        $result = $api->status('homlity_agency_42');
+
+        self::assertTrue($result->canPublish());
+        self::assertFalse($result->isPendingActivation());
+    }
+
+    public function test_status_returns_pending_activation_when_active_false(): void
+    {
+        $json = $this->publisherJson() + ['active' => false, 'state' => 'pending_activation'];
+        $api  = new PublisherApi($this->fakeHttp(200, $json), $this->normalizer, $this->config);
+
+        $result = $api->status('homlity_agency_42');
+
+        self::assertFalse($result->canPublish());
+        self::assertTrue($result->isPendingActivation());
+    }
 }

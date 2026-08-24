@@ -13,6 +13,7 @@ use Propit\Contracts\PropitHttpClientInterface;
 use Propit\DTO\HttpResponse;
 use Propit\Exceptions\ApiException;
 use Propit\Exceptions\AuthException;
+use Propit\Exceptions\ForbiddenException;
 use Propit\Exceptions\PublisherNotReadyException;
 use Propit\Exceptions\RateLimitException;
 use Propit\Support\StructuredLogger;
@@ -117,21 +118,20 @@ final class GuzzlePropitHttpClient implements PropitHttpClientInterface
         ];
 
         if ($response->statusCode === 403) {
-            $apiError  = $response->json['error'] ?? $response->json['message'] ?? '';
+            $apiError  = (string) ($response->json['error'] ?? $response->json['message'] ?? '');
             $requestId = isset($response->json['requestId']) ? (string) $response->json['requestId'] : null;
 
-            if (is_string($apiError) && stripos($apiError, 'publisher could not publish') !== false) {
+            if (stripos($apiError, 'publisher could not publish') !== false) {
                 return new PublisherNotReadyException('', $requestId, $ctx);
             }
 
-            $detail = is_string($apiError) && $apiError !== '' ? ": {$apiError}" : '';
-            return new AuthException('Unauthorized response from Proppit' . $detail . '.', $ctx, 403);
+            return new ForbiddenException($apiError, $ctx);
         }
 
         if ($response->statusCode === 401) {
-            $apiError = $response->json['error'] ?? $response->json['message'] ?? $response->rawBody;
-            $detail   = is_string($apiError) && $apiError !== '' ? ": {$apiError}" : '';
-            return new AuthException('Unauthorized response from Proppit' . $detail . '.', $ctx, 401);
+            $apiError = (string) ($response->json['error'] ?? $response->json['message'] ?? $response->rawBody);
+            $detail   = $apiError !== '' ? ": {$apiError}" : '.';
+            return new AuthException("Unauthorized response from Proppit{$detail}", $ctx, 401);
         }
 
         if ($response->statusCode === 429) {
